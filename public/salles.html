@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EHR — Planning par Salle</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--yellow:#F5C800;--black:#0D0D0D;--dark:#1A1A1A;--mid:#2A2A2A;--border:#333;--text:#E8E8E8;--muted:#888;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--text);min-height:100vh;}
+
+  header{background:var(--dark);border-bottom:3px solid var(--yellow);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-badge{width:42px;height:42px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--black);}
+  .logo-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--yellow);letter-spacing:1px;line-height:1;}
+  .logo-text p{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+  .header-nav{display:flex;gap:8px;align-items:center;}
+  .nav-link{color:var(--muted);text-decoration:none;font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);transition:all .2s;}
+  .nav-link:hover,.nav-link.active{color:var(--yellow);border-color:var(--yellow);}
+
+  .toolbar{background:var(--dark);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .toolbar-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+  select{background:var(--mid);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:13px;font-family:'Barlow',sans-serif;outline:none;}
+  select:focus{border-color:var(--yellow);}
+
+  main{padding:20px 24px;max-width:1400px;margin:0 auto;}
+
+  /* ── TABS SALLES ── */
+  .salle-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+  .salle-tab{padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:var(--dark);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .salle-tab:hover{border-color:var(--muted);color:var(--text);}
+  .salle-tab.active{border-color:var(--yellow);background:rgba(245,200,0,.08);color:var(--yellow);}
+  .salle-tab .tab-count{font-size:11px;font-weight:400;font-family:'Barlow',sans-serif;color:var(--muted);}
+  .salle-tab.active .tab-count{color:var(--yellow);opacity:.7;}
+
+  /* ── CALENDRIER ── */
+  .cal-header-row{display:grid;gap:1px;margin-bottom:1px;}
+  .cal-day-label{background:var(--mid);padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:center;}
+
+  /* ── VUE LISTE PAR SALLE ── */
+  .month-block{margin-bottom:24px;}
+  .month-header{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .match-row{display:flex;align-items:flex-start;gap:16px;padding:10px 14px;background:var(--dark);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;border-left:4px solid var(--yellow);}
+  .match-row:hover{background:var(--mid);}
+  .row-date{min-width:110px;flex-shrink:0;}
+  .row-date .day{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--yellow);line-height:1;}
+  .row-date .date{font-size:12px;color:var(--muted);}
+  .row-date .time{font-size:13px;color:var(--text);margin-top:2px;}
+  .row-info{flex:1;min-width:0;}
+  .row-team{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+  .row-match{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-match .ehr{color:var(--yellow);}
+  .row-badge{font-size:10px;padding:1px 7px;border-radius:3px;font-weight:600;margin-top:4px;display:inline-block;}
+  .badge-champ{background:#1A3A1A;color:#6BCB77;}
+  .badge-coupe{background:#1A2A3A;color:#6BC5FF;}
+  .badge-amical{background:#2A2A1A;color:#C8A800;}
+  .row-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:3px;}
+
+  /* ── VUE SEMAINE ── */
+  .week-grid{overflow-x:auto;margin-bottom:24px;}
+  .week-table{width:100%;border-collapse:collapse;min-width:700px;}
+  .week-table th{background:var(--mid);padding:8px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border:1px solid var(--border);}
+  .week-table td{padding:8px 12px;border:1px solid var(--border);vertical-align:top;font-size:12px;}
+  .week-table tr:hover td{background:var(--mid);}
+  .week-slot{margin-bottom:4px;}
+  .week-slot .ws-time{color:var(--yellow);font-weight:600;}
+  .week-slot .ws-team{color:var(--muted);font-size:11px;}
+  .week-slot .ws-match{color:var(--text);}
+
+  /* ── STATS ── */
+  .stats-salle{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
+  .stat-s{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center;}
+  .stat-s .v{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--yellow);}
+  .stat-s .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+  /* ── CONFLIT INDICATOR ── */
+  .conflict-badge{background:#3A1A1A;border:1px solid #E05252;color:#F08080;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;}
+
+  .loading{text-align:center;padding:60px;color:var(--muted);}
+  .empty{text-align:center;padding:40px;color:var(--muted);font-style:italic;}
+
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:var(--dark);}
+  ::-webkit-scrollbar-thumb{background:#444;border-radius:3px;}
+
+  @media(max-width:640px){
+    header{padding:0 14px;}
+    .toolbar{padding:10px 14px;}
+    main{padding:14px;}
+    .salle-tab{padding:8px 14px;font-size:12px;}
+    .match-row{flex-direction:column;gap:8px;}
+    .row-date{min-width:unset;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">EHR</div>
+    <div class="logo-text"><h1>Planning par Salle</h1><p>Saison 2025–2026</p></div>
+  </div>
+  <div class="header-nav">
+    <a href="/" class="nav-link">📋 Planning</a>
+    <a href="/salles" class="nav-link active">🏟 Salles</a>
+    <a href="/admin" class="nav-link">⚙ Admin</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="toolbar-label">Mois</span>
+  <select id="filter-month" onchange="render()"><option value="">Tous les mois</option></select>
+  <span class="toolbar-label" style="margin-left:8px">Affichage</span>
+  <select id="filter-view" onchange="render()">
+    <option value="list">Liste chronologique</option>
+    <option value="conflicts">Conflits de créneaux</option>
+  </select>
+</div>
+
+<main>
+  <div id="content"><div class="loading">Chargement…</div></div>
+</main>
+
+<script>
+const SALLES = ['Kanfen', 'Rodemack', 'Hettange Poly', 'Hettange Hall'];
+const API = '';
+let ALL_MATCHES = [];
+let currentSalle = 'Kanfen';
+
+const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+async function loadData() {
+  try {
+    const res = await fetch(API + '/api/matches');
+    ALL_MATCHES = await res.json();
+
+    // Populate month filter
+    const months = [...new Set(ALL_MATCHES.map(m => m.date_iso.slice(0,7)))].sort();
+    const sel = document.getElementById('filter-month');
+    months.forEach(k => {
+      const [y, mo] = k.split('-');
+      const o = document.createElement('option');
+      o.value = k; o.textContent = MONTH_NAMES[parseInt(mo)-1] + ' ' + y;
+      sel.appendChild(o);
+    });
+
+    render();
+  } catch(e) {
+    document.getElementById('content').innerHTML = '<div class="loading">⚠ Impossible de charger les données.</div>';
+  }
+}
+
+function getFiltered() {
+  const month = document.getElementById('filter-month').value;
+  // Matchs à domicile dans la salle sélectionnée
+  return ALL_MATCHES.filter(m => {
+    if (m.home !== true) return false;
+    if ((m.salle || '').trim() !== currentSalle) return false;
+    if (month && !m.date_iso.startsWith(month)) return false;
+    if (['exempt','report'].includes(m.match_type)) return false;
+    return true;
+  }).sort((a,b) => a.date_iso.localeCompare(b.date_iso) || (a.time_str||'').localeCompare(b.time_str||''));
+}
+
+function getAllSalleMatches() {
+  // Pour les stats des tabs — tous les mois
+  const month = document.getElementById('filter-month').value;
+  return SALLES.map(s => ({
+    salle: s,
+    count: ALL_MATCHES.filter(m =>
+      m.home === true &&
+      (m.salle||'').trim() === s &&
+      !['exempt','report'].includes(m.match_type) &&
+      (!month || m.date_iso.startsWith(month))
+    ).length
+  }));
+}
+
+function render() {
+  const view = document.getElementById('filter-view').value;
+  const matches = getFiltered();
+  const salleStats = getAllSalleMatches();
+
+  // Build salle tabs
+  const tabsHtml = SALLES.map(s => {
+    const stat = salleStats.find(x => x.salle === s);
+    const count = stat ? stat.count : 0;
+    return `<div class="salle-tab ${s === currentSalle ? 'active' : ''}" onclick="selectSalle('${s}')">
+      🏟 ${s}
+      <span class="tab-count">${count} match${count>1?'s':''}</span>
+    </div>`;
+  }).join('');
+
+  if (view === 'conflicts') {
+    renderConflicts(tabsHtml);
+  } else {
+    renderList(tabsHtml, matches);
+  }
+}
+
+function selectSalle(s) {
+  currentSalle = s;
+  render();
+}
+
+function renderList(tabsHtml, matches) {
+  const el = document.getElementById('content');
+
+  // Stats
+  const teams = new Set(matches.map(m => m.team_name));
+  const statsHtml = `<div class="stats-salle">
+    <div class="stat-s"><div class="v">${matches.length}</div><div class="l">Matchs prévus</div></div>
+    <div class="stat-s"><div class="v">${teams.size}</div><div class="l">Équipes distinctes</div></div>
+    <div class="stat-s"><div class="v">${[...new Set(matches.map(m=>m.date_iso))].length}</div><div class="l">Journées occupées</div></div>
+  </div>`;
+
+  // Group by month
+  const byMonth = {};
+  matches.forEach(m => {
+    const key = m.date_iso.slice(0,7);
+    if (!byMonth[key]) byMonth[key] = [];
+    byMonth[key].push(m);
+  });
+
+  const monthsHtml = Object.keys(byMonth).sort().map(key => {
+    const [y, mo] = key.split('-');
+    const rows = byMonth[key].map(m => {
+      const parts = m.date_str.split(' ');
+      const dateNum = parts[0];
+      const dayName = parts.slice(1).join(' ');
+      const mainLine = m.match_text.split('\n')[0].replace(/EHR/g, '<span class="ehr">EHR</span>');
+      const badgeCls = m.match_type === 'coupe' ? 'badge-coupe' : m.match_type === 'amical' ? 'badge-amical' : 'badge-champ';
+      const badgeLabel = {champ:'Championnat',coupe:'Coupe',amical:'Amical'}[m.match_type] || m.match_type;
+
+      // Conflit même créneau même date
+      const sameSlot = matches.filter(x =>
+        x.id !== m.id && x.date_iso === m.date_iso &&
+        x.time_str && m.time_str && x.time_str === m.time_str
+      );
+      const conflictHtml = sameSlot.length > 0
+        ? `<span class="conflict-badge">⚠ Conflit créneau</span>` : '';
+
+      return `<div class="match-row">
+        <div class="row-date">
+          <div class="day">${dayName}</div>
+          <div class="date">${dateNum}</div>
+          ${m.time_str ? `<div class="time">⏱ ${m.time_str}</div>` : ''}
+        </div>
+        <div class="row-info">
+          <div class="row-team">${m.team_name}</div>
+          <div class="row-match">${mainLine}</div>
+          <span class="row-badge ${badgeCls}">${badgeLabel}</span>
+          ${m.journee ? `<span class="row-badge" style="background:#222;color:#888;margin-left:4px">${m.journee}</span>` : ''}
+          ${conflictHtml}
+          ${m.note ? `<div class="row-note">${m.note}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="month-block">
+      <div class="month-header">${MONTH_NAMES[parseInt(mo)-1]} ${y}</div>
+      ${rows}
+    </div>`;
+  }).join('') || `<div class="empty">Aucun match prévu à <strong>${currentSalle}</strong> pour cette période.</div>`;
+
+  el.innerHTML = `
+    <div class="salle-tabs">${tabsHtml}</div>
+    ${statsHtml}
+    ${monthsHtml}
+  `;
+}
+
+function renderConflicts(tabsHtml) {
+  // Vue tous les matchs domicile pour détecter les conflits par date+heure
+  const month = document.getElementById('filter-month').value;
+  const allHome = ALL_MATCHES.filter(m =>
+    m.home === true &&
+    !['exempt','report'].includes(m.match_type) &&
+    m.salle &&
+    (!month || m.date_iso.startsWith(month))
+  ).sort((a,b) => a.date_iso.localeCompare(b.date_iso) || (a.time_str||'').localeCompare(b.time_str||''));
+
+  // Grouper par date+salle+heure pour détecter conflits
+  const slots = {};
+  allHome.forEach(m => {
+    const key = `${m.date_iso}|${m.salle}|${m.time_str||'?'}`;
+    if (!slots[key]) slots[key] = [];
+    slots[key].push(m);
+  });
+
+  const conflicts = Object.entries(slots).filter(([,ms]) => ms.length > 1);
+
+  // Grouper par date pour vue globale
+  const byDate = {};
+  allHome.forEach(m => {
+    if (!byDate[m.date_iso]) byDate[m.date_iso] = [];
+    byDate[m.date_iso].push(m);
+  });
+
+  const conflictDates = new Set(conflicts.flatMap(([k]) => [k.split('|')[0]]));
+
+  const conflictSection = conflicts.length > 0 ? `
+    <div class="month-block">
+      <div class="month-header" style="color:#E05252">⚠ ${conflicts.length} conflit${conflicts.length>1?'s':''} détecté${conflicts.length>1?'s':''}</div>
+      ${conflicts.map(([key, ms]) => {
+        const [date, salle, time] = key.split('|');
+        return `<div class="match-row" style="border-left-color:#E05252;background:#1A0A0A">
+          <div class="row-date">
+            <div class="day" style="color:#E05252">${ms[0].date_str.split(' ').slice(1).join(' ')}</div>
+            <div class="date">${date}</div>
+            ${time !== '?' ? `<div class="time" style="color:#E05252">⏱ ${time}</div>` : ''}
+          </div>
+          <div class="row-info">
+            <div class="row-team" style="color:#E05252">🏟 ${salle} — ${ms.length} matchs en simultané !</div>
+            ${ms.map(m => `<div class="row-match" style="margin-top:4px">• ${m.team_name} : ${m.match_text.split('\n')[0]}</div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : `<div class="empty" style="color:#6BCB77">✓ Aucun conflit de créneau détecté.</div>`;
+
+  // Vue d'ensemble par salle et date
+  const overviewHtml = Object.keys(byDate).sort().map(date => {
+    const ms = byDate[date];
+    const bySalle = {};
+    ms.forEach(m => { if(!bySalle[m.salle]) bySalle[m.salle]=[]; bySalle[m.salle].push(m); });
+    const parts = ms[0].date_str.split(' ');
+    const hasConflict = conflictDates.has(date);
+    return `<div class="match-row" style="${hasConflict?'border-left-color:#E05252':''}" >
+      <div class="row-date">
+        <div class="day">${parts.slice(1).join(' ')}</div>
+        <div class="date">${parts[0]}</div>
+        <div class="date" style="margin-top:4px;color:${ms.length>2?'#E05252':ms.length>1?'#C8A800':'#6BCB77'}">${ms.length} match${ms.length>1?'s':''}</div>
+      </div>
+      <div class="row-info">
+        ${SALLES.map(s => {
+          const salleMs = bySalle[s] || [];
+          if (!salleMs.length) return '';
+          const isConflict = salleMs.length > 1;
+          return `<div style="margin-bottom:6px">
+            <span style="color:${isConflict?'#E05252':'var(--muted)'};font-size:11px;font-weight:600">🏟 ${s}${isConflict?' ⚠':''}  </span>
+            ${salleMs.map(m => `<span style="font-size:12px;color:var(--text)">${m.time_str?m.time_str+' ':''}<span style="color:var(--yellow)">${m.team_name}</span></span>`).join(' · ')}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty">Aucun match à domicile avec salle renseignée.</div>`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="salle-tabs">${tabsHtml}</div>
+    ${conflictSection}
+    <div style="margin-top:24px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        Vue d'ensemble — toutes les salles
+      </div>
+      ${overviewHtml}
+    </div>
+  `;
+}
+
+loadData();
+</script>
+</body>
+</html>
