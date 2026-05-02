@@ -9,8 +9,12 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import Response, HTMLResponse
 import libsql_client
+
+# Chemin vers public/ (relatif à api/)
+PUBLIC_DIR = __import__("pathlib").Path(__file__).parent.parent / "public"
+def _html(name): return (PUBLIC_DIR / name).read_text(encoding="utf-8")
 
 from db import init_db, get_client, rows_to_dicts
 from importer import import_to_turso
@@ -48,6 +52,16 @@ def get_user(token: str) -> dict:
     if not rows:
         raise HTTPException(401, "Utilisateur introuvable")
     return dict(zip(r.columns, rows[0]))
+
+# ── PAGES HTML ───────────────────────────────────────────────────────────────
+
+@app.get("/", response_class=HTMLResponse)
+def serve_index():
+    return HTMLResponse(_html("index.html"))
+
+@app.get("/admin", response_class=HTMLResponse)
+def serve_admin():
+    return HTMLResponse(_html("admin.html"))
 
 # ── LOGIN ─────────────────────────────────────────────────────────────────────
 
