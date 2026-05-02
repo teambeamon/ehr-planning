@@ -253,7 +253,13 @@ def _hash(p): return hashlib.sha256(p.encode()).hexdigest()
 def _auth(token: str) -> dict:
     if not token:
         raise HTTPException(401, "Non authentifié")
-    s = db_fetchone("SELECT username FROM sessions WHERE token=?", (token,))
+    try:
+        s = db_fetchone("SELECT username FROM sessions WHERE token=?", (token,))
+    except Exception:
+        # Table sessions absente — la créer et demander reconnexion
+        try: db_execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, username TEXT NOT NULL, created_at TEXT DEFAULT '')")
+        except: pass
+        raise HTTPException(401, "Session expirée — veuillez vous reconnecter")
     if not s:
         raise HTTPException(401, "Session expirée — veuillez vous reconnecter")
     u = db_fetchone("SELECT id,username,role,team_filter FROM users WHERE username=?", (s["username"],))
@@ -292,12 +298,12 @@ def login(username: str=Form(...), password: str=Form(...)):
         raise HTTPException(401, "Identifiants invalides")
     token = secrets.token_hex(32)
     now = datetime.now().isoformat()
+    # Créer la table sessions si elle n'existe pas (sécurité supplémentaire)
+    try:
+        db_execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, username TEXT NOT NULL, created_at TEXT DEFAULT '')")
+    except: pass
     db_execute("INSERT OR REPLACE INTO sessions (token,username,created_at) VALUES (?,?,?)",
                (token, username, now))
-    # Nettoyer les vieilles sessions (> 30 jours)
-    try: db_execute("DELETE FROM sessions WHERE created_at < ?",
-                    (datetime.now().replace(day=datetime.now().day).isoformat()[:8]+"00:00:00",))
-    except: pass
     return {"token": token, "role": u["role"], "username": username}
 
 @app.post("/api/logout")
