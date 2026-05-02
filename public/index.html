@@ -6,104 +6,92 @@
 <title>EHR — Planning Matchs 2025-2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --yellow: #F5C800; --black: #0D0D0D; --dark: #1A1A1A;
-    --mid: #2A2A2A; --border: #333; --text: #E8E8E8; --muted: #888;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Barlow',sans-serif; background:var(--black); color:var(--text); min-height:100vh; }
+  :root { --yellow:#F5C800; --black:#0D0D0D; --dark:#1A1A1A; --mid:#2A2A2A; --border:#333; --text:#E8E8E8; --muted:#888; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--text);min-height:100vh;}
+  header{background:var(--dark);border-bottom:3px solid var(--yellow);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-badge{width:42px;height:42px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--black);}
+  .logo-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--yellow);letter-spacing:1px;line-height:1;}
+  .logo-text p{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+  .header-right{display:flex;gap:12px;align-items:center;}
+  .header-stat strong{display:block;font-size:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--yellow);line-height:1;}
+  .header-stat{font-size:12px;color:var(--muted);text-align:right;}
+  .btn-admin{background:var(--yellow);color:var(--black);border:none;padding:8px 16px;border-radius:6px;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:14px;cursor:pointer;letter-spacing:1px;text-decoration:none;}
+  .toolbar{background:var(--dark);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .toolbar-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+  select,input[type="text"]{background:var(--mid);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:13px;font-family:'Barlow',sans-serif;outline:none;}
+  select:focus,input[type="text"]:focus{border-color:var(--yellow);}
+  .divider{width:1px;height:28px;background:var(--border);}
+  .search-wrap{flex:1;min-width:180px;max-width:320px;position:relative;}
+  .search-wrap input{width:100%;padding-left:32px;}
+  .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+  main{padding:20px 24px;max-width:1600px;margin:0 auto;}
+  .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;}
+  .stat-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
+  .stat-card .val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--yellow);line-height:1;}
+  .stat-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--dark);border:1px solid var(--border);border-radius:8px;font-size:12px;}
+  .legend-item{display:flex;align-items:center;gap:6px;color:var(--muted);}
+  .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+  .date-block{margin-bottom:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .date-header{background:var(--mid);padding:10px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;}
+  .date-header:hover{background:#333;}
+  .date-header .day-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;min-width:80px;}
+  .date-header .date-full{font-size:14px;}
+  .match-count{margin-left:auto;background:var(--yellow);color:var(--black);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;}
+  .chevron{color:var(--muted);transition:transform .2s;font-size:12px;}
+  .date-header.collapsed .chevron{transform:rotate(-90deg);}
+  .matches-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:var(--border);}
+  .matches-grid.collapsed{display:none;}
+  .match-card{background:var(--dark);padding:12px 14px;border-left:3px solid transparent;transition:background .15s;cursor:pointer;}
+  .match-card:hover{background:var(--mid);}
+  .match-card.home{border-left-color:#4CAF50;}
+  .match-card.away{border-left-color:#FF8C00;}
+  .match-card.coupe{border-left-color:#4A9EFF;}
+  .match-card.amical{border-left-color:#C8A800;}
+  .match-card.exempt,.match-card.report{border-left-color:#555;opacity:.7;}
+  .match-team{font-size:11px;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .match-vs{font-size:14px;font-weight:500;color:var(--text);line-height:1.3;}
+  .match-vs .ehr{color:var(--yellow);font-weight:700;}
+  .match-time{font-size:12px;color:var(--muted);margin-top:3px;}
+  .match-infos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .info-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;}
+  .info-badge.salle{background:#1A2A3A;color:#6BC5FF;}
+  .info-badge.camion{background:#2A1A2A;color:#CF8EE0;}
+  .info-badge.depart{background:#1A2A1A;color:#6BCB77;}
+  .journee-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-top:4px;font-weight:600;}
+  .journee-badge.j-champ{background:#1A3A1A;color:#6BCB77;}
+  .journee-badge.j-coupe{background:#1A2A3A;color:#6BC5FF;}
+  .journee-badge.j-amical{background:#2A2A1A;color:#C8A800;}
+  .match-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:4px;}
 
-  header {
-    background:var(--dark); border-bottom:3px solid var(--yellow);
-    padding:0 24px; display:flex; align-items:center; justify-content:space-between;
-    height:64px; position:sticky; top:0; z-index:100;
-  }
-  .logo { display:flex; align-items:center; gap:12px; }
-  .logo-badge {
-    width:42px; height:42px; background:var(--yellow); border-radius:8px;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:18px;
-    color:var(--black); letter-spacing:-1px;
-  }
-  .logo-text h1 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:22px; color:var(--yellow); letter-spacing:1px; line-height:1; }
-  .logo-text p { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
-  .header-right { display:flex; gap:12px; align-items:center; }
-  .header-stat strong { display:block; font-size:20px; font-family:'Barlow Condensed',sans-serif; font-weight:700; color:var(--yellow); line-height:1; }
-  .header-stat { font-size:12px; color:var(--muted); text-align:right; }
-  .btn-admin { background:var(--yellow); color:var(--black); border:none; padding:8px 16px; border-radius:6px; font-weight:700; font-family:'Barlow Condensed',sans-serif; font-size:14px; cursor:pointer; letter-spacing:1px; text-decoration:none; }
-  .btn-admin:hover { background:var(--yellow-dark, #d4ac00); }
+  /* ── MODAL DÉTAIL ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--dark);border:1px solid var(--border);border-radius:12px;padding:28px;width:520px;max-width:100%;max-height:90vh;overflow-y:auto;}
+  .modal-close{float:right;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+  .modal-close:hover{color:var(--text);}
+  .modal h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--yellow);margin-bottom:16px;}
+  .detail-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .detail-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .detail-section h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .detail-row{display:flex;gap:8px;margin-bottom:6px;font-size:13px;}
+  .detail-label{color:var(--muted);min-width:100px;flex-shrink:0;}
+  .detail-value{color:var(--text);font-weight:500;}
+  .detail-value.highlight{color:var(--yellow);}
 
-  .toolbar {
-    background:var(--dark); border-bottom:1px solid var(--border);
-    padding:12px 24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;
-  }
-  .toolbar-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
-  select, input[type="text"] {
-    background:var(--mid); border:1px solid var(--border); color:var(--text);
-    padding:7px 12px; border-radius:6px; font-size:13px; font-family:'Barlow',sans-serif; outline:none;
-  }
-  select:focus, input[type="text"]:focus { border-color:var(--yellow); }
-  .divider { width:1px; height:28px; background:var(--border); }
-  .search-wrap { flex:1; min-width:180px; max-width:320px; position:relative; }
-  .search-wrap input { width:100%; padding-left:32px; }
-  .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; }
-
-  main { padding:20px 24px; max-width:1600px; margin:0 auto; }
-
-  .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:16px; }
-  .stat-card { background:var(--dark); border:1px solid var(--border); border-radius:8px; padding:12px 16px; }
-  .stat-card .val { font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:700; color:var(--yellow); line-height:1; }
-  .stat-card .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
-
-  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; padding:10px 14px; background:var(--dark); border:1px solid var(--border); border-radius:8px; font-size:12px; }
-  .legend-item { display:flex; align-items:center; gap:6px; color:var(--muted); }
-  .legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
-
-  .date-block { margin-bottom:12px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-  .date-header { background:var(--mid); padding:10px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; user-select:none; }
-  .date-header:hover { background:#333; }
-  .date-header .day-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; color:var(--yellow); text-transform:uppercase; letter-spacing:1px; min-width:80px; }
-  .date-header .date-full { font-size:14px; }
-  .match-count { margin-left:auto; background:var(--yellow); color:var(--black); font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; font-family:'Barlow Condensed',sans-serif; }
-  .chevron { color:var(--muted); transition:transform .2s; font-size:12px; }
-  .date-header.collapsed .chevron { transform:rotate(-90deg); }
-
-  .matches-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1px; background:var(--border); }
-  .matches-grid.collapsed { display:none; }
-
-  .match-card { background:var(--dark); padding:12px 14px; border-left:3px solid transparent; transition:background .15s; }
-  .match-card:hover { background:var(--mid); }
-  .match-card.home { border-left-color:#4CAF50; }
-  .match-card.away { border-left-color:#FF8C00; }
-  .match-card.coupe { border-left-color:#4A9EFF; }
-  .match-card.amical { border-left-color:#C8A800; }
-  .match-card.exempt, .match-card.report { border-left-color:#555; opacity:.7; }
-  .match-card.edited { position:relative; }
-  .match-card.edited::after { content:"✎"; position:absolute; top:6px; right:8px; font-size:10px; color:var(--muted); }
-
-  .match-team { font-size:11px; color:var(--yellow); text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .match-vs { font-size:14px; font-weight:500; color:var(--text); line-height:1.3; }
-  .match-vs .ehr { color:var(--yellow); font-weight:700; }
-  .match-time { font-size:12px; color:var(--muted); margin-top:2px; }
-  .journee-badge { display:inline-block; font-size:10px; padding:1px 6px; border-radius:3px; margin-top:4px; font-weight:600; }
-  .journee-badge.j-champ { background:#1A3A1A; color:#6BCB77; }
-  .journee-badge.j-coupe { background:#1A2A3A; color:#6BC5FF; }
-  .journee-badge.j-amical { background:#2A2A1A; color:#C8A800; }
-  .match-note { font-size:11px; color:var(--muted); font-style:italic; margin-top:4px; }
-
-  .no-results { text-align:center; padding:60px 20px; color:var(--muted); }
-  .loading { text-align:center; padding:60px; color:var(--muted); font-size:14px; }
-
-  ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-track { background:var(--dark); }
-  ::-webkit-scrollbar-thumb { background:#444; border-radius:3px; }
-
-  @media(max-width:640px) {
-    header { padding:0 14px; }
-    .header-right .header-stat { display:none; }
-    .toolbar { padding:10px 14px; }
-    main { padding:14px; }
-    .matches-grid { grid-template-columns:1fr; }
+  .no-results{text-align:center;padding:60px 20px;color:var(--muted);}
+  .loading{text-align:center;padding:60px;color:var(--muted);font-size:14px;}
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:var(--dark);}
+  ::-webkit-scrollbar-thumb{background:#444;border-radius:3px;}
+  @media(max-width:640px){
+    header{padding:0 14px;}
+    .header-right .header-stat{display:none;}
+    .toolbar{padding:10px 14px;}
+    main{padding:14px;}
+    .matches-grid{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -112,10 +100,7 @@
 <header>
   <div class="logo">
     <div class="logo-badge">EHR</div>
-    <div class="logo-text">
-      <h1>Planning Matchs</h1>
-      <p>Saison 2025–2026</p>
-    </div>
+    <div class="logo-text"><h1>Planning Matchs</h1><p>Saison 2025–2026</p></div>
   </div>
   <div class="header-right">
     <div class="header-stat"><strong id="h-matches">—</strong>matchs</div>
@@ -149,7 +134,7 @@
     <input type="text" id="search-input" placeholder="Rechercher…" oninput="applyFilters()">
   </div>
   <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
-    <a href="/api/export/ical" style="font-size:12px;color:var(--muted);text-decoration:none">📅 Export iCal (tout)</a>
+    <a href="/api/export/ical" style="font-size:12px;color:var(--muted);text-decoration:none">📅 Export iCal</a>
   </div>
 </div>
 
@@ -167,117 +152,94 @@
     <div class="legend-item"><div class="legend-dot" style="background:#4A9EFF"></div>Coupe / CDF</div>
     <div class="legend-item"><div class="legend-dot" style="background:#C8A800"></div>Amical</div>
     <div class="legend-item"><div class="legend-dot" style="background:#555"></div>Exempt / Report</div>
+    <div class="legend-item" style="margin-left:auto;font-size:11px;">💡 Cliquez sur un match pour les détails</div>
   </div>
   <div id="planning-list"><div class="loading">Chargement…</div></div>
 </main>
 
+<!-- MODAL DÉTAIL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
 <script>
-const API = '';  // même origine; changer si backend séparé ex: 'http://localhost:8000'
-let ALL_MATCHES = [];
-let ALL_TEAMS = [];
+const API = '';
+let ALL_MATCHES = [], ALL_TEAMS = [];
 
 async function loadData() {
   try {
     const [matchRes, statsRes, teamRes] = await Promise.all([
-      fetch(API + '/api/matches'),
-      fetch(API + '/api/stats'),
-      fetch(API + '/api/teams'),
+      fetch(API+'/api/matches'), fetch(API+'/api/stats'), fetch(API+'/api/teams')
     ]);
     ALL_MATCHES = await matchRes.json();
     const stats = await statsRes.json();
     ALL_TEAMS = await teamRes.json();
-
     document.getElementById('h-matches').textContent = stats.total_matches;
     document.getElementById('h-teams').textContent = stats.total_teams;
-
-    // Populate team filter
     const selTeam = document.getElementById('filter-team');
-    ALL_TEAMS.forEach(t => {
-      const o = document.createElement('option');
-      o.value = t.name; o.textContent = t.name;
-      selTeam.appendChild(o);
-    });
-
-    // Populate month filter
-    const months = [...new Set(ALL_MATCHES.map(m => m.date_iso.slice(0,7)))].sort();
+    ALL_TEAMS.forEach(t => { const o=document.createElement('option'); o.value=t.name; o.textContent=t.name; selTeam.appendChild(o); });
+    const months = [...new Set(ALL_MATCHES.map(m=>m.date_iso.slice(0,7)))].sort();
     const selMonth = document.getElementById('filter-month');
-    const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-    months.forEach(k => {
-      const [y, mo] = k.split('-');
-      const o = document.createElement('option');
-      o.value = k; o.textContent = monthNames[parseInt(mo)-1] + ' ' + y;
-      selMonth.appendChild(o);
-    });
-
+    const mNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    months.forEach(k => { const [y,mo]=k.split('-'); const o=document.createElement('option'); o.value=k; o.textContent=mNames[parseInt(mo)-1]+' '+y; selMonth.appendChild(o); });
     applyFilters();
   } catch(e) {
-    document.getElementById('planning-list').innerHTML = `<div class="no-results"><p>⚠ Impossible de contacter l'API.<br>Vérifiez que le backend est démarré.</p></div>`;
+    document.getElementById('planning-list').innerHTML = '<div class="no-results"><p>⚠ Impossible de contacter l\'API.</p></div>';
   }
 }
 
 function applyFilters() {
-  const team = document.getElementById('filter-team').value;
-  const month = document.getElementById('filter-month').value;
-  const type = document.getElementById('filter-type').value;
-  const search = document.getElementById('search-input').value.toLowerCase();
-
+  const team=document.getElementById('filter-team').value;
+  const month=document.getElementById('filter-month').value;
+  const type=document.getElementById('filter-type').value;
+  const search=document.getElementById('search-input').value.toLowerCase();
   let filtered = ALL_MATCHES.filter(m => {
-    if (team && m.team_name !== team) return false;
-    if (month && !m.date_iso.startsWith(month)) return false;
-    if (type && m.match_type !== type) return false;
-    if (search && !(m.match_text + m.team_name + m.opponent + m.coach).toLowerCase().includes(search)) return false;
+    if(team && m.team_name!==team) return false;
+    if(month && !m.date_iso.startsWith(month)) return false;
+    if(type && m.match_type!==type) return false;
+    if(search && !(m.match_text+m.team_name+m.opponent+m.coach).toLowerCase().includes(search)) return false;
     return true;
   });
-
-  // Stats
   document.getElementById('s-total').textContent = filtered.length;
-  document.getElementById('s-home').textContent = filtered.filter(m => m.home === true).length;
-  document.getElementById('s-away').textContent = filtered.filter(m => m.home === false).length;
-  document.getElementById('s-coupe').textContent = filtered.filter(m => m.match_type === 'coupe').length;
-  document.getElementById('s-exempt').textContent = filtered.filter(m => m.match_type === 'exempt').length;
-
+  document.getElementById('s-home').textContent = filtered.filter(m=>m.home===true).length;
+  document.getElementById('s-away').textContent = filtered.filter(m=>m.home===false).length;
+  document.getElementById('s-coupe').textContent = filtered.filter(m=>m.match_type==='coupe').length;
+  document.getElementById('s-exempt').textContent = filtered.filter(m=>m.match_type==='exempt').length;
   renderList(filtered);
 }
 
 function renderList(matches) {
   const el = document.getElementById('planning-list');
-  if (!matches.length) {
-    el.innerHTML = '<div class="no-results"><p>Aucun match trouvé</p></div>';
-    return;
-  }
-
-  const byDate = {};
-  matches.forEach(m => {
-    if (!byDate[m.date_iso]) byDate[m.date_iso] = [];
-    byDate[m.date_iso].push(m);
-  });
-
-  const typeClass = { champ: m => m.home === true ? 'home' : m.home === false ? 'away' : '', coupe:'coupe', amical:'amical', exempt:'exempt', report:'report' };
-
+  if(!matches.length) { el.innerHTML='<div class="no-results"><p>Aucun match trouvé</p></div>'; return; }
+  const byDate={};
+  matches.forEach(m => { if(!byDate[m.date_iso]) byDate[m.date_iso]=[]; byDate[m.date_iso].push(m); });
+  const typeClass={champ:m=>m.home===true?'home':m.home===false?'away':'',coupe:'coupe',amical:'amical',exempt:'exempt',report:'report'};
   el.innerHTML = Object.keys(byDate).sort().map(iso => {
-    const ms = byDate[iso];
-    const sample = ms[0];
-    const parts = sample.date_str.split(' ');
-    const dateNum = parts[0];
-    const dayName = parts.slice(1).join(' ');
-
+    const ms=byDate[iso]; const s=ms[0];
+    const parts=s.date_str.split(' '); const dateNum=parts[0]; const dayName=parts.slice(1).join(' ');
     const cards = ms.map(m => {
-      const tc = typeof typeClass[m.match_type] === 'function' ? typeClass[m.match_type](m) : (typeClass[m.match_type] || '');
-      const mainLine = m.match_text.split('\n')[0].replace(/EHR/g, '<span class="ehr">EHR</span>');
-      let badge = '';
-      if (m.journee) {
-        const bc = /coupe|cdf|moselle/i.test(m.journee) ? 'j-coupe' : /amical/i.test(m.journee) ? 'j-amical' : 'j-champ';
-        badge = `<span class="journee-badge ${bc}">${m.journee}</span>`;
-      }
-      return `<div class="match-card ${tc} ${m.manually_edited?'edited':''}">
+      const tc=typeof typeClass[m.match_type]==='function'?typeClass[m.match_type](m):(typeClass[m.match_type]||'');
+      const mainLine=m.match_text.split('\n')[0].replace(/EHR/g,'<span class="ehr">EHR</span>');
+      let badge='';
+      if(m.journee){const bc=/coupe|cdf|moselle/i.test(m.journee)?'j-coupe':/amical/i.test(m.journee)?'j-amical':'j-champ';badge=`<span class="journee-badge ${bc}">${m.journee}</span>`;}
+      // Badges infos logistiques
+      let infoBadges='';
+      if(m.home===true && m.salle) infoBadges+=`<span class="info-badge salle">🏟 ${m.salle}</span>`;
+      if(m.home===false && m.camionnette) infoBadges+=`<span class="info-badge camion">🚐 ${m.camionnette}</span>`;
+      if(m.home===false && m.heure_depart) infoBadges+=`<span class="info-badge depart">🕐 Départ ${m.heure_depart}</span>`;
+      return `<div class="match-card ${tc}" onclick="showDetail(${m.id})">
         <div class="match-team">${m.team_name}</div>
         <div class="match-vs">${mainLine}</div>
-        ${m.time_str ? `<div class="match-time">⏱ ${m.time_str}</div>` : ''}
+        ${m.time_str?`<div class="match-time">⏱ ${m.time_str}</div>`:''}
         ${badge}
-        ${m.note ? `<div class="match-note">${m.note}</div>` : ''}
+        ${infoBadges?`<div class="match-infos">${infoBadges}</div>`:''}
+        ${m.note?`<div class="match-note">${m.note}</div>`:''}
       </div>`;
     }).join('');
-
     return `<div class="date-block">
       <div class="date-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed')">
         <span class="day-name">${dayName}</span>
@@ -289,6 +251,49 @@ function renderList(matches) {
     </div>`;
   }).join('');
 }
+
+function showDetail(id) {
+  const m = ALL_MATCHES.find(x=>x.id===id);
+  if(!m) return;
+  const mainLine = m.match_text.split('\n')[0];
+  document.getElementById('modal-title').textContent = mainLine;
+  const isHome = m.home===true;
+  const isAway = m.home===false;
+  let body = `
+    <div class="detail-section">
+      <h4>Match</h4>
+      <div class="detail-row"><span class="detail-label">Équipe</span><span class="detail-value highlight">${m.team_name}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${m.date_str}</span></div>
+      ${m.time_str?`<div class="detail-row"><span class="detail-label">Heure</span><span class="detail-value">${m.time_str}</span></div>`:''}
+      ${m.journee?`<div class="detail-row"><span class="detail-label">Journée</span><span class="detail-value">${m.journee}</span></div>`:''}
+      ${m.coach?`<div class="detail-row"><span class="detail-label">Coach</span><span class="detail-value">${m.coach}</span></div>`:''}
+    </div>`;
+  // Section logistique domicile
+  if(isHome && (m.salle)) {
+    body += `<div class="detail-section">
+      <h4>🏟 Logistique domicile</h4>
+      ${m.salle?`<div class="detail-row"><span class="detail-label">Salle</span><span class="detail-value highlight">${m.salle}</span></div>`:''}
+    </div>`;
+  }
+  // Section logistique déplacement
+  if(isAway && (m.camionnette||m.conducteur||m.heure_depart||m.lieu_rdv)) {
+    body += `<div class="detail-section">
+      <h4>🚐 Logistique déplacement</h4>
+      ${m.camionnette?`<div class="detail-row"><span class="detail-label">Véhicule</span><span class="detail-value highlight">${m.camionnette}</span></div>`:''}
+      ${m.conducteur?`<div class="detail-row"><span class="detail-label">Conducteur</span><span class="detail-value">${m.conducteur}</span></div>`:''}
+      ${m.heure_depart?`<div class="detail-row"><span class="detail-label">Heure départ</span><span class="detail-value highlight">${m.heure_depart}</span></div>`:''}
+      ${m.lieu_rdv?`<div class="detail-row"><span class="detail-label">Lieu RDV</span><span class="detail-value">${m.lieu_rdv}</span></div>`:''}
+    </div>`;
+  }
+  if(m.note) {
+    body += `<div class="detail-section"><h4>Note</h4><div style="font-size:13px;color:var(--muted);font-style:italic">${m.note}</div></div>`;
+  }
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
 loadData();
 </script>
