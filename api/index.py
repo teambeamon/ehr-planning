@@ -584,7 +584,7 @@ def debug():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-APP_VERSION = "1.0.0-beta"
+APP_VERSION = "1.1.0-beta"
 
 @app.get("/api/app-info")
 def app_info():
