@@ -232,35 +232,46 @@ def _read_xls(path):
     sh = wb.sheet_by_name("Planning")
     teams = {c: {"name":_s(sh.cell_value(TEAM_ROW,c)),"coach":_s(sh.cell_value(COACH_ROW,c))}
              for c in range(FIRST_TEAM_COL, sh.ncols) if _s(sh.cell_value(TEAM_ROW,c))}
-    # Lire toutes les valeurs et bg
-    all_rows = []
+
+    # Passe unique : lire valeurs + bg en une seule fois
+    raw_vals = {}   # (r,c) -> str
+    raw_bg   = {}   # (r,c) -> int
     for r in range(HEADER_ROWS, sh.nrows):
-        row = [_s(sh.cell_value(r,c)) for c in range(sh.ncols)]
-        bg_map = {}
+        for c in range(sh.ncols):
+            v = _s(sh.cell_value(r, c))
+            if v: raw_vals[(r,c)] = v
         for c in range(FIRST_TEAM_COL, sh.ncols):
             try:
                 xf = wb.xf_list[sh.cell_xf_index(r, c)]
-                bg_map[c] = xf.background.pattern_colour_index
-            except: bg_map[c] = 9
-        row.append(bg_map)
-        all_rows.append(row)
+                bg = xf.background.pattern_colour_index
+                if bg not in (9, 64, 65, 0): raw_bg[(r,c)] = bg
+            except: pass
 
-    # Pour chaque ligne, annoter la "journee" depuis les lignes suivantes
-    # La ligne suivante contient souvent "Journée X" ou "J1" dans la même colonne
-    rows = []
-    for i, row in enumerate(all_rows):
-        journee_map = {}
-        for c in range(FIRST_TEAM_COL, len(row)-1):
-            # Chercher dans les 3 lignes suivantes
+    # Construire journee_map : pour chaque (r,c) qui contient un match,
+    # chercher la journée dans la même colonne, lignes r+1..r+3
+    IS_JOURNEE = re.compile(r"^(journee|journée|j\d+$|coupe|amical|phase\s+\d|tour\s+\d|\d+e\s+tour)", re.I)
+    journee_index = {}  # (r,c) -> str
+    nrows = sh.nrows
+    for r in range(HEADER_ROWS, nrows):
+        for c in range(FIRST_TEAM_COL, sh.ncols):
+            if (r,c) not in raw_vals: continue
             for j in range(1, 4):
-                if i+j >= len(all_rows): break
-                next_val = all_rows[i+j][c] if c < len(all_rows[i+j])-1 else ""
-                if next_val and re.match(r"(journée\s+\d|j\d+|coupe|amical|phase|tour)", next_val.lower()):
-                    journee_map[c] = next_val
+                rj = r + j
+                if rj >= nrows: break
+                v2 = raw_vals.get((rj, c), "")
+                if v2 and IS_JOURNEE.match(v2.strip()):
+                    journee_index[(r,c)] = v2
                     break
-        row_copy = list(row)
-        row_copy.append(journee_map)  # avant-dernier: bg_map, dernier: journee_map
-        rows.append(row_copy)
+
+    # Construire rows : liste de (row_list, bg_map, journee_map) par r
+    rows = []
+    for r in range(HEADER_ROWS, nrows):
+        row = [raw_vals.get((r,c),"") for c in range(sh.ncols)]
+        bg_map = {c: raw_bg.get((r,c), 9) for c in range(FIRST_TEAM_COL, sh.ncols)}
+        journee_map = {c: journee_index[(r,c)] for c in range(FIRST_TEAM_COL, sh.ncols) if (r,c) in journee_index}
+        row.append(bg_map)
+        row.append(journee_map)
+        rows.append(row)
     return teams, rows
 
 def _read_xlsx(path):
@@ -312,22 +323,46 @@ def do_import(path, filename):
     try: parsed = parse_excel(path)
     except Exception as e:
         return {"status":"error","message":str(e),"created":0,"updated":0,"skipped":0,"filename":filename}
-    created=updated=skipped=0
+
+    created = updated = skipped = 0
+
+    # Charger tous les excel_import_id existants en une seule requête
+    existing_rows = db_fetchall("SELECT id, excel_import_id, manually_edited FROM matches WHERE excel_import_id IS NOT NULL")
+    existing_map = {r["excel_import_id"]: r for r in existing_rows}
+
+    to_insert = []
+    to_update = []
+
     for m in parsed:
-        existing = db_fetchone("SELECT id,manually_edited FROM matches WHERE excel_import_id=?", (m["excel_import_id"],))
-        if existing:
-            if existing["manually_edited"]: skipped+=1; continue
-            db_execute("UPDATE matches SET match_text=?,opponent=?,home=?,time_str=?,match_type=?,salle=?,updated_at=? WHERE id=?",
-                       (m["match_text"],m["opponent"],m["home"],m["time_str"],m["match_type"],m.get("salle",""),now,existing["id"]))
-            updated+=1
+        key = m["excel_import_id"]
+        ex = existing_map.get(key)
+        if ex:
+            if ex["manually_edited"]: skipped += 1; continue
+            to_update.append((m["match_text"],m["opponent"],m["home"],m["time_str"],
+                               m["match_type"],m.get("salle",""),now, ex["id"]))
+            updated += 1
         else:
+            to_insert.append((m["date_str"],m["date_iso"],m["team_name"],m["coach"],
+                               m["match_text"],m["opponent"],m["home"],m["time_str"],
+                               m["match_type"],"",m["excel_import_id"],now,now,
+                               m.get("salle",""),m.get("journee","")))
+            created += 1
+
+    # Exécuter les updates par lots de 50
+    BATCH = 50
+    for i in range(0, len(to_update), BATCH):
+        batch = to_update[i:i+BATCH]
+        for args in batch:
+            db_execute("UPDATE matches SET match_text=?,opponent=?,home=?,time_str=?,match_type=?,salle=?,updated_at=? WHERE id=?", args)
+
+    # Exécuter les inserts par lots de 50
+    for i in range(0, len(to_insert), BATCH):
+        batch = to_insert[i:i+BATCH]
+        for args in batch:
             db_execute("""INSERT INTO matches (date_str,date_iso,team_name,coach,match_text,opponent,home,
                           time_str,match_type,note,manually_edited,excel_import_id,created_at,updated_at,salle,journee)
-                          VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?)""",
-                       (m["date_str"],m["date_iso"],m["team_name"],m["coach"],m["match_text"],
-                        m["opponent"],m["home"],m["time_str"],m["match_type"],"",m["excel_import_id"],now,now,
-                        m.get("salle",""),m.get("journee","")))
-            created+=1
+                          VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?)""", args)
+
     db_execute("INSERT INTO import_logs (filename,imported_at,rows_created,rows_updated,rows_skipped,status,message) VALUES (?,?,?,?,?,?,?)",
                (filename,now,created,updated,skipped,"ok",""))
     return {"status":"ok","filename":filename,"created":created,"updated":updated,"skipped":skipped,"message":""}
