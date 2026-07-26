@@ -128,6 +128,10 @@ def db_init():
             label TEXT DEFAULT '',
             created_at TEXT DEFAULT ''
         );
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT DEFAULT ''
+        );
     """)
     conn.commit()
     pwd = hashlib.sha256(b"ehr2025").hexdigest()
@@ -142,9 +146,23 @@ def db_init():
         "ALTER TABLE matches ADD COLUMN conducteur TEXT DEFAULT ''",
         "ALTER TABLE matches ADD COLUMN heure_depart TEXT DEFAULT ''",
         "ALTER TABLE matches ADD COLUMN lieu_rdv TEXT DEFAULT ''",
+        "ALTER TABLE matches ADD COLUMN saison TEXT DEFAULT ''",
     ]:
         try: db_execute(col_sql)
         except: pass
+
+    # Saison par défaut si jamais configurée (ne touche pas si déjà présente)
+    db_execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('current_saison', ?)", ("2025-2026",))
+
+    # Rétro-remplissage : déduit la saison depuis date_iso pour les matchs qui n'en ont pas encore
+    try:
+        rows = db_fetchall("SELECT id, date_iso FROM matches WHERE saison='' OR saison IS NULL")
+        for r in rows:
+            s = _saison_from_date(r["date_iso"])
+            if s:
+                db_execute("UPDATE matches SET saison=? WHERE id=?", (s, r["id"]))
+    except Exception as e:
+        print(f"[WARN] backfill saison: {e}")
 
 # ── Import Excel ──────────────────────────────────────────────────────────────
 
@@ -161,6 +179,17 @@ except ImportError:
     HAVE_OPENPYXL = False
 
 TEAM_ROW = 11; COACH_ROW = 13; DATE_COL = 4; FIRST_TEAM_COL = 5; HEADER_ROWS = 14
+
+def _saison_from_date(date_iso: str) -> str:
+    """Déduit la saison (ex: '2025-2026') à partir d'une date ISO 'YYYY-MM-DD'.
+    Convention club : la saison démarre en juillet (fin de trêve estivale)."""
+    try:
+        y, m = int(date_iso[0:4]), int(date_iso[5:7])
+    except Exception:
+        return ""
+    if m >= 7:
+        return f"{y}-{y+1}"
+    return f"{y-1}-{y}"
 
 def _s(v): return str(v).strip() if v is not None else ""
 def _iso(s):
@@ -350,16 +379,17 @@ def do_import(path, filename):
     for m in parsed:
         key = m["excel_import_id"]
         ex = existing_map.get(key)
+        saison = _saison_from_date(m["date_iso"])
         if ex:
             if ex["manually_edited"]: skipped += 1; continue
             to_update.append((m["match_text"],m["opponent"],m["home"],m["time_str"],
-                               m["match_type"],m.get("salle",""),now, ex["id"]))
+                               m["match_type"],m.get("salle",""),saison,now, ex["id"]))
             updated += 1
         else:
             to_insert.append((m["date_str"],m["date_iso"],m["team_name"],m["coach"],
                                m["match_text"],m["opponent"],m["home"],m["time_str"],
                                m["match_type"],"",m["excel_import_id"],now,now,
-                               m.get("salle",""),m.get("journee","")))
+                               m.get("salle",""),m.get("journee",""),saison))
             created += 1
 
     # Exécuter les updates par lots de 50
@@ -367,15 +397,15 @@ def do_import(path, filename):
     for i in range(0, len(to_update), BATCH):
         batch = to_update[i:i+BATCH]
         for args in batch:
-            db_execute("UPDATE matches SET match_text=?,opponent=?,home=?,time_str=?,match_type=?,salle=?,updated_at=? WHERE id=?", args)
+            db_execute("UPDATE matches SET match_text=?,opponent=?,home=?,time_str=?,match_type=?,salle=?,saison=?,updated_at=? WHERE id=?", args)
 
     # Exécuter les inserts par lots de 50
     for i in range(0, len(to_insert), BATCH):
         batch = to_insert[i:i+BATCH]
         for args in batch:
             db_execute("""INSERT INTO matches (date_str,date_iso,team_name,coach,match_text,opponent,home,
-                          time_str,match_type,note,manually_edited,excel_import_id,created_at,updated_at,salle,journee)
-                          VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?)""", args)
+                          time_str,match_type,note,manually_edited,excel_import_id,created_at,updated_at,salle,journee,saison)
+                          VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?)""", args)
 
     db_execute("INSERT INTO import_logs (filename,imported_at,rows_created,rows_updated,rows_skipped,status,message) VALUES (?,?,?,?,?,?,?)",
                (filename,now,created,updated,skipped,"ok",""))
@@ -471,8 +501,15 @@ def login(username: str=Form(...), password: str=Form(...)):
     return {"token": token, "role": u["role"], "username": username}
 
 @app.post("/api/reset-admin")
-def reset_admin():
-    """Recrée l'admin par défaut si absent ou mot de passe oublié."""
+def reset_admin(secret: str = Form("")):
+    """Recrée l'admin par défaut si absent ou mot de passe oublié.
+    Protégé par un secret défini uniquement côté serveur (variable d'env RESET_ADMIN_SECRET) :
+    sans ce secret configuré, l'endpoint est désactivé (personne ne peut prendre la main sur le compte admin)."""
+    expected = os.environ.get("RESET_ADMIN_SECRET", "")
+    if not expected:
+        raise HTTPException(403, "Réinitialisation désactivée (RESET_ADMIN_SECRET non configuré côté serveur)")
+    if not secrets.compare_digest(secret, expected):
+        raise HTTPException(403, "Secret invalide")
     import hashlib
     pwd = hashlib.sha256(b"ehr2025").hexdigest()
     try:
@@ -482,7 +519,7 @@ def reset_admin():
         "INSERT OR REPLACE INTO users (username,hashed_password,role,team_filter) VALUES (?,?,?,?)",
         ("admin", pwd, "admin", "")
     )
-    return {"ok": True, "message": "Admin réinitialisé avec mot de passe 'ehr2025'"}
+    return {"ok": True, "message": "Admin réinitialisé avec mot de passe 'ehr2025' — change-le immédiatement après connexion"}
 
 @app.post("/api/logout")
 def logout(token: str=Form("")):
@@ -498,9 +535,16 @@ def me(token: str=""):
 
 # ── Matchs ────────────────────────────────────────────────────────────────────
 
+def _current_saison() -> str:
+    row = db_fetchone("SELECT value FROM settings WHERE key='current_saison'")
+    return (row or {}).get("value", "")
+
 @app.get("/api/matches")
-def list_matches(team: str="", month: str="", match_type: str="", search: str=""):
+def list_matches(team: str="", month: str="", match_type: str="", search: str="", saison: str=""):
+    if not saison:
+        saison = _current_saison()
     sql = "SELECT * FROM matches WHERE 1=1"; p = []
+    if saison and saison != "all": sql += " AND saison=?"; p.append(saison)
     if team:       sql += " AND team_name=?";    p.append(team)
     if month:      sql += " AND date_iso LIKE ?"; p.append(month+"%")
     if match_type: sql += " AND match_type=?";   p.append(match_type)
@@ -524,18 +568,20 @@ def create_match(
     time_str: str=Form(""), journee: str=Form(""), match_type: str=Form("champ"),
     note: str=Form(""), token: str=Form(""),
     salle: str=Form(""), camionnette: str=Form(""), conducteur: str=Form(""),
-    heure_depart: str=Form(""), lieu_rdv: str=Form(""),
+    heure_depart: str=Form(""), lieu_rdv: str=Form(""), saison: str=Form(""),
 ):
     _auth(token)
     hv = 1 if home=="true" else (0 if home=="false" else None)
     now = datetime.now().isoformat()
+    date_iso = _pdate(date_str)
+    sv = saison or _saison_from_date(date_iso)
     new_id = db_execute(
         """INSERT INTO matches (date_str,date_iso,team_name,coach,match_text,opponent,home,
            time_str,journee,match_type,note,manually_edited,created_at,updated_at,
-           salle,camionnette,conducteur,heure_depart,lieu_rdv)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,?,?,?,?)""",
-        (date_str,_pdate(date_str),team_name,coach,match_text,opponent,hv,time_str,journee,match_type,note,now,now,
-         salle,camionnette,conducteur,heure_depart,lieu_rdv)
+           salle,camionnette,conducteur,heure_depart,lieu_rdv,saison)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,?,?,?,?,?)""",
+        (date_str,date_iso,team_name,coach,match_text,opponent,hv,time_str,journee,match_type,note,now,now,
+         salle,camionnette,conducteur,heure_depart,lieu_rdv,sv)
     )
     return get_match(new_id)
 
@@ -546,13 +592,17 @@ def update_match(
     home: Optional[str]=Form(None), time_str: str=Form(""), journee: str=Form(""),
     match_type: str=Form(""), note: str=Form(""), token: str=Form(""),
     salle: str=Form(""), camionnette: str=Form(""), conducteur: str=Form(""),
-    heure_depart: str=Form(""), lieu_rdv: str=Form(""),
+    heure_depart: str=Form(""), lieu_rdv: str=Form(""), saison: str=Form(""),
 ):
     _auth(token)
     now = datetime.now().isoformat()
     hv = 1 if home=="true" else (0 if home=="false" else None)
     sets, p = [], []
-    if date_str:   sets+=["date_str=?","date_iso=?"]; p+=[date_str,_pdate(date_str)]
+    if date_str:
+        d_iso = _pdate(date_str)
+        sets+=["date_str=?","date_iso=?"]; p+=[date_str,d_iso]
+        if not saison: saison = _saison_from_date(d_iso)
+    if saison:     sets.append("saison=?"); p.append(saison)
     if team_name:  sets.append("team_name=?"); p.append(team_name)
     if match_text: sets.append("match_text=?"); p.append(match_text)
     if coach:      sets.append("coach=?"); p.append(coach)
@@ -579,9 +629,25 @@ def delete_match(match_id: int, token: str=""):
 def list_teams():
     return db_fetchall("SELECT DISTINCT team_name AS name, coach FROM matches ORDER BY team_name")
 
+@app.get("/api/saisons")
+def list_saisons():
+    rows = db_fetchall("SELECT DISTINCT saison FROM matches WHERE saison!='' ORDER BY saison")
+    return {"saisons": [r["saison"] for r in rows], "current": _current_saison()}
+
+@app.post("/api/saisons/current")
+def set_saison_courante(saison: str=Form(...), token: str=Form("")):
+    u = _auth(token)
+    if u["role"] != "admin": raise HTTPException(403)
+    if not re.match(r"^\d{4}-\d{4}$", saison):
+        raise HTTPException(400, "Format attendu: AAAA-AAAA (ex: 2026-2027)")
+    db_execute("INSERT OR REPLACE INTO settings (key,value) VALUES ('current_saison', ?)", (saison,))
+    return {"ok": True, "current_saison": saison}
+
 @app.get("/api/debug")
-def debug():
-    """Endpoint de diagnostic — à supprimer en production."""
+def debug(token: str = ""):
+    """Endpoint de diagnostic — réservé aux admins (était public avant, fuite de usernames/rôles corrigée)."""
+    u = _auth(token)
+    if u["role"] != "admin": raise HTTPException(403)
     try:
         users = db_fetchall("SELECT username, role FROM users")
         sessions_count = len(db_fetchall("SELECT token FROM sessions"))
@@ -589,7 +655,7 @@ def debug():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-APP_VERSION = "1.2.0-beta"
+APP_VERSION = "1.3.0-beta"
 
 @app.get("/api/app-info")
 def app_info():
@@ -601,13 +667,42 @@ def app_info():
     }
 
 @app.get("/api/stats")
-def stats():
-    total  = (db_fetchone("SELECT COUNT(*) AS n FROM matches") or {}).get("n",0)
-    teams  = (db_fetchone("SELECT COUNT(DISTINCT team_name) AS n FROM matches") or {}).get("n",0)
-    dates  = (db_fetchone("SELECT COUNT(DISTINCT date_iso) AS n FROM matches") or {}).get("n",0)
-    edited = (db_fetchone("SELECT COUNT(*) AS n FROM matches WHERE manually_edited=1") or {}).get("n",0)
-    by_type = {r["match_type"]:r["n"] for r in db_fetchall("SELECT match_type, COUNT(*) AS n FROM matches GROUP BY match_type")}
-    return {"total_matches":total,"total_teams":teams,"total_dates":dates,"manually_edited":edited,"by_type":by_type}
+def stats(saison: str=""):
+    where, p = "WHERE 1=1", []
+    if saison and saison != "all": where += " AND saison=?"; p.append(saison)
+    total  = (db_fetchone(f"SELECT COUNT(*) AS n FROM matches {where}", tuple(p)) or {}).get("n",0)
+    teams  = (db_fetchone(f"SELECT COUNT(DISTINCT team_name) AS n FROM matches {where}", tuple(p)) or {}).get("n",0)
+    dates  = (db_fetchone(f"SELECT COUNT(DISTINCT date_iso) AS n FROM matches {where}", tuple(p)) or {}).get("n",0)
+    edited = (db_fetchone(f"SELECT COUNT(*) AS n FROM matches {where} AND manually_edited=1", tuple(p)) or {}).get("n",0)
+    by_type = {r["match_type"]:r["n"] for r in db_fetchall(f"SELECT match_type, COUNT(*) AS n FROM matches {where} GROUP BY match_type", tuple(p))}
+    return {"saison": saison or "toutes","total_matches":total,"total_teams":teams,"total_dates":dates,"manually_edited":edited,"by_type":by_type}
+
+@app.get("/api/stats/salles")
+def stats_salles(saison: str=""):
+    """Pour chaque salle : nombre total de matchs, et répartition des jours
+    selon le nombre de matchs disputés ce jour-là dans cette salle
+    (ex: 12 jours avec 1 seul match, 4 jours avec 2 matchs, 1 jour avec 3 matchs...)."""
+    if not saison:
+        saison = _current_saison()
+    sql = "SELECT salle, date_iso, COUNT(*) AS n FROM matches WHERE salle!=''"
+    p = []
+    if saison and saison != "all":
+        sql += " AND saison=?"; p.append(saison)
+    sql += " GROUP BY salle, date_iso"
+    rows = db_fetchall(sql, tuple(p))
+
+    par_salle = {}
+    for r in rows:
+        s, n = r["salle"], r["n"]
+        d = par_salle.setdefault(s, {"total_matches": 0, "jours_par_nb_matchs": {}, "max_matchs_meme_jour": 0})
+        d["total_matches"] += n
+        key = str(n)
+        d["jours_par_nb_matchs"][key] = d["jours_par_nb_matchs"].get(key, 0) + 1
+        if n > d["max_matchs_meme_jour"]:
+            d["max_matchs_meme_jour"] = n
+
+    salles = [{"salle": s, **v} for s, v in sorted(par_salle.items())]
+    return {"saison": saison or "toutes", "salles": salles}
 
 # ── Import Excel ──────────────────────────────────────────────────────────────
 
