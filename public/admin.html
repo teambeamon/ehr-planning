@@ -1,1 +1,125 @@
-<!-- Served by FastAPI -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - EHR Planning</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .hidden { display: none; }
+        .error { color: #d32f2f; }
+        .success { color: #388e3c; }
+        button, input, select { padding: 8px 12px; margin: 5px 0; font-size: 14px; }
+        button { background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1565c0; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>⚙️ Administration EHR Planning</h1>
+
+    <!-- Section Login -->
+    <div id="login-section" class="section">
+        <h2>Connexion Admin</h2>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" id="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <p id="login-error" class="error"></p>
+    </div>
+
+    <!-- Section Admin (cachée si non connecté) -->
+    <div id="admin-section" class="section hidden">
+        <h2>Panneau d'administration</h2>
+
+        <!-- Changement de saison -->
+        <div>
+            <h3>Changer la saison active</h3>
+            <form id="saison-form">
+                <select id="saison-select" required>
+                    <option value="2025-2026">2025-2026</option>
+                    <option value="2026-2027" selected>2026-2027</option>
+                    <option value="2027-2028">2027-2028</option>
+                </select>
+                <button type="submit">Basculer vers cette saison</button>
+            </form>
+            <p id="saison-error" class="error"></p>
+            <p id="saison-success" class="success"></p>
+        </div>
+    </div>
+
+    <script>
+        // 1. Vérifie si déjà connecté (token en localStorage)
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.remove('hidden');
+        }
+
+        // 2. Gestion du login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+
+            errorEl.textContent = '';
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Identifiants invalides');
+                }
+
+                const data = await response.json();
+                localStorage.setItem('adminToken', data.token);
+                location.reload(); // Recharge pour afficher la section admin
+            } catch (error) {
+                errorEl.textContent = error.message;
+            }
+        });
+
+        // 3. Basculer la saison active
+        document.getElementById('saison-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saison = document.getElementById('saison-select').value;
+            const token = localStorage.getItem('adminToken');
+            const errorEl = document.getElementById('saison-error');
+            const successEl = document.getElementById('saison-success');
+
+            if (!token) {
+                errorEl.textContent = 'Veuillez vous connecter d\'abord.';
+                return;
+            }
+
+            errorEl.textContent = '';
+            successEl.textContent = 'Chargement...';
+
+            try {
+                const response = await fetch('/api/saisons/current', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `saison=${saison}&token=${token}`
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Erreur lors du changement de saison');
+                }
+
+                successEl.textContent = `✅ Saison active : ${saison} (recharge la page pour voir les changements)`;
+                setTimeout(() => successEl.textContent = '', 5000);
+            } catch (error) {
+                errorEl.textContent = error.message;
+                successEl.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>
