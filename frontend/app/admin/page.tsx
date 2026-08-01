@@ -10,7 +10,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [saisons, setSaisons] = useState<Saison[]>([]);
-  const [currentSaison, setCurrentSaison] = useState<string>('');
+  const [currentSaison, setCurrentSaisonState] = useState<string>('');
   const [newSaison, setNewSaison] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -65,7 +65,7 @@ export default function AdminPage() {
     if (res.data) {
       setSaisons(res.data);
       const active = res.data.find(s => s.active);
-      if (active) setCurrentSaison(active.nom);
+      if (active) setCurrentSaisonState(active.nom);
     }
   };
 
@@ -293,7 +293,7 @@ export default function AdminPage() {
               </label>
               <select
                 value={currentSaison}
-                onChange={(e) => setCurrentSaison(e.target.value)}
+                onChange={(e) => setCurrentSaisonState(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {saisons.map((saison) => (
