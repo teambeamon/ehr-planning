@@ -104,7 +104,6 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
           aspectRatio={1.5}
           dayMaxEvents={3}
           moreLinkClassNames="text-blue-600 dark:text-blue-400"
-          className="text-sm"
           eventClassNames="cursor-pointer hover:opacity-90 transition-opacity"
           dayHeaderClassNames="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium py-2"
           dayCellClassNames="border border-gray-200 dark:border-gray-700"

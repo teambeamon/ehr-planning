@@ -45,7 +45,7 @@ export default function ClassementsPage() {
       joues: number;
       victoires: number;
       nuls: number;
-      défaites: number;
+      defaites: number;
       pointsPour: number;
       pointsContre: number;
       difference: number;
@@ -58,7 +58,7 @@ export default function ClassementsPage() {
         joues: 0,
         victoires: 0,
         nuls: 0,
-        défaites: 0,
+        defaites: 0,
         pointsPour: 0,
         pointsContre: 0,
         difference: 0,
@@ -76,13 +76,13 @@ export default function ClassementsPage() {
       // Initialiser si pas encore présent
       if (!stats[team1]) {
         stats[team1] = {
-          joues: 0, victoires: 0, nuls: 0, défaites: 0,
+          joues: 0, victoires: 0, nuls: 0, defaites: 0,
           pointsPour: 0, pointsContre: 0, difference: 0, points: 0
         };
       }
       if (!stats[team2]) {
         stats[team2] = {
-          joues: 0, victoires: 0, nuls: 0, défaites: 0,
+          joues: 0, victoires: 0, nuls: 0, defaites: 0,
           pointsPour: 0, pointsContre: 0, difference: 0, points: 0
         };
       }
@@ -91,27 +91,30 @@ export default function ClassementsPage() {
       stats[team1].joues++;
       stats[team2].joues++;
 
-      stats[team1].pointsPour += match.score1;
-      stats[team1].pointsContre += match.score2;
-      stats[team1].difference += match.score1 - match.score2;
+      // Seuls les matchs avec scores sont comptabilisés
+      if (typeof match.score1 === 'number' && typeof match.score2 === 'number') {
+        stats[team1].pointsPour += match.score1;
+        stats[team1].pointsContre += match.score2;
+        stats[team1].difference += match.score1 - match.score2;
 
-      stats[team2].pointsPour += match.score2;
-      stats[team2].pointsContre += match.score1;
-      stats[team2].difference += match.score2 - match.score1;
+        stats[team2].pointsPour += match.score2;
+        stats[team2].pointsContre += match.score1;
+        stats[team2].difference += match.score2 - match.score1;
 
-      if (match.score1 > match.score2) {
-        stats[team1].victoires++;
-        stats[team1].points += 3; // 3 points pour une victoire
-        stats[team2].defaites++;
-      } else if (match.score1 < match.score2) {
-        stats[team2].victoires++;
-        stats[team2].points += 3;
-        stats[team1].defaites++;
-      } else {
-        stats[team1].nuls++;
-        stats[team2].nuls++;
-        stats[team1].points += 1; // 1 point pour un match nul
-        stats[team2].points += 1;
+        if (match.score1 > match.score2) {
+          stats[team1].victoires++;
+          stats[team1].points += 3;
+          stats[team2].defaites++;
+        } else if (match.score1 < match.score2) {
+          stats[team2].victoires++;
+          stats[team2].points += 3;
+          stats[team1].defaites++;
+        } else {
+          stats[team1].nuls++;
+          stats[team2].nuls++;
+          stats[team1].points += 1;
+          stats[team2].points += 1;
+        }
       }
     });
 

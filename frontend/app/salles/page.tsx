@@ -46,7 +46,7 @@ export default function SallesPage() {
         setStats(res.data);
         // Extraire les saisons
         const saisons = res.data.map(s => s.saison);
-        setAllSaisons([...new Set(saisons)]);
+        setAllSaisons(Array.from(new Set(saisons)));
       }
     } catch (err) {
       setError('Impossible de charger les statistiques');
@@ -187,7 +187,7 @@ export default function SallesPage() {
                         border: 'none',
                         borderRadius: '0.5rem',
                       }}
-                      formatter={(value: number) => [`${value} matchs`, '']}
+                      formatter={(value) => [`${value} matchs`, '']}
                     />
                     <Bar dataKey="matchs" fill="#3b82f6">
                       {chartData.map((entry, index) => (

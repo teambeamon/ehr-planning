@@ -52,8 +52,8 @@ export default function MatchesPage() {
         setMatches(matchesRes.data);
 
         // Extraire les salles et saisons uniques
-        const uniqueSalles = [...new Set(matchesRes.data.map(m => m.salle))];
-        const uniqueSaisons = [...new Set(matchesRes.data.map(m => m.saison))];
+        const uniqueSalles = Array.from(new Set(matchesRes.data.map(m => m.salle)));
+        const uniqueSaisons = Array.from(new Set(matchesRes.data.map(m => m.saison)));
         setAllSalles(uniqueSalles);
         setAllSaisons(uniqueSaisons);
       }
