@@ -3,13 +3,47 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": { "maxDuration": 30 }
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next",
+      "config": { "installCommand": "npm install" }
     }
   ],
   "routes": [
+    // Next.js frontend
+    {
+      "src": "/(.*\\.(?:css|js|ttf|woff2?|png|jpg|jpeg|gif|svg|ico))$",
+      "dest": "frontend/$1"
+    },
+    // Pages statiques existantes (fallback)
+    {
+      "src": "^/admin\\.html$",
+      "dest": "public/admin.html"
+    },
+    {
+      "src": "^/salles\\.html$",
+      "dest": "public/salles.html"
+    },
+    {
+      "src": "^/classements\\.html$",
+      "dest": "public/classements.html"
+    },
+    {
+      "src": "^/index\\.html$",
+      "dest": "public/index.html"
+    },
+    // API routes (backend FastAPI)
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    // All other routes to Next.js
     {
       "src": "/(.*)",
-      "dest": "api/index.py"
+      "dest": "frontend/$1"
     }
   ]
 }
