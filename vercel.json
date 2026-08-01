@@ -13,12 +13,10 @@
     }
   ],
   "routes": [
-    // Next.js frontend
     {
       "src": "/(.*\\.(?:css|js|ttf|woff2?|png|jpg|jpeg|gif|svg|ico))$",
       "dest": "frontend/$1"
     },
-    // Pages statiques existantes (fallback)
     {
       "src": "^/admin\\.html$",
       "dest": "public/admin.html"
@@ -35,12 +33,10 @@
       "src": "^/index\\.html$",
       "dest": "public/index.html"
     },
-    // API routes (backend FastAPI)
     {
       "src": "/api/(.*)",
       "dest": "api/index.py"
     },
-    // All other routes to Next.js
     {
       "src": "/(.*)",
       "dest": "frontend/$1"
