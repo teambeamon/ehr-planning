@@ -187,7 +187,7 @@ export default function SallesPage() {
                         border: 'none',
                         borderRadius: '0.5rem',
                       }}
-                      formatter={(value) => [`${value} matchs`, '']}
+                      formatter={(value: any) => value !== undefined ? [`${value} matchs`, ''] : ['', '']}
                     />
                     <Bar dataKey="matchs" fill="#3b82f6">
                       {chartData.map((entry, index) => (

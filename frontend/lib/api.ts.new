@@ -1,24 +1,14 @@
 // Client API pour communiquer avec le backend FastAPI
-// Configuration pour Vercel: frontend et backend sur la même origine
+// En production sur Vercel: /api/... pointe vers le backend FastAPI
+// En développement: backend sur http://localhost:8000
 
-const getApiUrl = (path: string, params?: Record<string, string | number>): string => {
+const getApiUrl = (path: string): string => {
   if (typeof window !== 'undefined') {
-    const url = new URL(path, window.location.origin);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) url.searchParams.append(key, String(value));
-      });
-    }
-    return url.toString();
+    // En production, utilise l'origine actuelle
+    return `${window.location.origin}/api${path}`;
   }
-  // SSR: utilise localhost:3000 (Next.js) ou configure selon ton env
-  const url = new URL(path, 'http://localhost:3000');
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) url.searchParams.append(key, String(value));
-    });
-  }
-  return url.toString();
+  // En développement (SSR), utilise localhost:8000
+  return `http://localhost:8000/api${path}`;
 };
 
 export interface ApiResponse<T> {
@@ -30,7 +20,7 @@ export interface ApiResponse<T> {
 // ==================== AUTHENTIFICATION ====================
 
 export async function login(username: string, password: string): Promise<ApiResponse<{token: string; user: any}>> {
-  const response = await fetch(getApiUrl('/api/login'), {
+  const response = await fetch(`${BASE_URL}/api/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
@@ -43,7 +33,7 @@ export async function login(username: string, password: string): Promise<ApiResp
 }
 
 export async function logout(token: string): Promise<ApiResponse<void>> {
-  const response = await fetch(getApiUrl('/api/logout'), {
+  const response = await fetch(`${BASE_URL}/api/logout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `token=${token}`,
@@ -56,7 +46,7 @@ export async function logout(token: string): Promise<ApiResponse<void>> {
 }
 
 export async function getMe(token: string): Promise<ApiResponse<any>> {
-  const response = await fetch(getApiUrl('/api/me', { token }));
+  const response = await fetch(`${BASE_URL}/api/me?token=${token}`);
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Token invalide' }));
     return { error: error.detail, status: response.status };
@@ -67,13 +57,13 @@ export async function getMe(token: string): Promise<ApiResponse<any>> {
 // ==================== SAISONS ====================
 
 export async function getSaisons(): Promise<ApiResponse<any[]>> {
-  const response = await fetch(getApiUrl('/api/saisons'));
+  const response = await fetch(`${BASE_URL}/api/saisons`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }
 
 export async function setCurrentSaison(saison: string, token: string): Promise<ApiResponse<void>> {
-  const response = await fetch(getApiUrl('/api/saisons/current'), {
+  const response = await fetch(`${BASE_URL}/api/saisons/current`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `saison=${saison}&token=${token}`,
@@ -88,14 +78,21 @@ export async function setCurrentSaison(saison: string, token: string): Promise<A
 // ==================== MATCHS ====================
 
 export async function getMatches(params?: { saison?: string; salle?: string; journee?: number; limit?: number; offset?: number }): Promise<ApiResponse<any[]>> {
-  const response = await fetch(getApiUrl('/api/matches', params));
+  const url = new URL(`${BASE_URL}/api/matches`);
+  if (params) {
+    if (params.saison) url.searchParams.append('saison', params.saison);
+    if (params.salle) url.searchParams.append('salle', params.salle);
+    if (params.journee) url.searchParams.append('journee', params.journee.toString());
+    if (params.limit) url.searchParams.append('limit', params.limit.toString());
+    if (params.offset) url.searchParams.append('offset', params.offset.toString());
+  }
+  const response = await fetch(url.toString());
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  return { data: await response.json(), status: response.status };
 }
 
 export async function getMatchById(matchId: number): Promise<ApiResponse<any>> {
-  const response = await fetch(getApiUrl(`/api/matches/${matchId}`));
+  const response = await fetch(`${BASE_URL}/api/matches/${matchId}`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }
@@ -106,7 +103,7 @@ export async function createMatch(match: any, token: string): Promise<ApiRespons
     if (value !== undefined) formData.append(key, String(value));
   });
   formData.append('token', token);
-  const response = await fetch(getApiUrl('/api/matches'), {
+  const response = await fetch(`${BASE_URL}/api/matches`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formData.toString(),
@@ -121,7 +118,7 @@ export async function updateMatch(matchId: number, match: any, token: string): P
     if (value !== undefined) formData.append(key, String(value));
   });
   formData.append('token', token);
-  const response = await fetch(getApiUrl(`/api/matches/${matchId}`), {
+  const response = await fetch(`${BASE_URL}/api/matches/${matchId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formData.toString(),
@@ -131,7 +128,7 @@ export async function updateMatch(matchId: number, match: any, token: string): P
 }
 
 export async function deleteMatch(matchId: number, token: string): Promise<ApiResponse<void>> {
-  const response = await fetch(getApiUrl(`/api/matches/${matchId}`), {
+  const response = await fetch(`${BASE_URL}/api/matches/${matchId}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `token=${token}`,
@@ -143,43 +140,43 @@ export async function deleteMatch(matchId: number, token: string): Promise<ApiRe
 // ==================== STATS ====================
 
 export async function getStats(params?: { saison?: string }): Promise<ApiResponse<any>> {
-  const response = await fetch(getApiUrl('/api/stats', params));
+  const url = new URL(`${BASE_URL}/api/stats`);
+  if (params?.saison) url.searchParams.append('saison', params.saison);
+  const response = await fetch(url.toString());
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }
 
 export async function getStatsBySalle(params?: { saison?: string }): Promise<ApiResponse<any[]>> {
-  const response = await fetch(getApiUrl('/api/stats/salles', params));
+  const url = new URL(`${BASE_URL}/api/stats/salles`);
+  if (params?.saison) url.searchParams.append('saison', params.saison);
+  const response = await fetch(url.toString());
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  return { data: await response.json(), status: response.status };
 }
 
 // ==================== EQUIPES ====================
 
 export async function getTeams(): Promise<ApiResponse<any[]>> {
-  const response = await fetch(getApiUrl('/api/teams'));
+  const response = await fetch(`${BASE_URL}/api/teams`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  return { data: await response.json(), status: response.status };
 }
 
 // ==================== SALLES ====================
 
 export async function getSalles(): Promise<ApiResponse<string[]>> {
-  const response = await fetch(getApiUrl('/api/salles'));
+  const response = await fetch(`${BASE_URL}/api/salles`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  return { data: await response.json(), status: response.status };
 }
 
 // ==================== INDISPONIBILITES ====================
 
 export async function getIndispos(): Promise<ApiResponse<any[]>> {
-  const response = await fetch(getApiUrl('/api/indispos'));
+  const response = await fetch(`${BASE_URL}/api/indispos`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  return { data: await response.json(), status: response.status };
 }
 
 export async function createIndispo(indispo: any, token: string): Promise<ApiResponse<any>> {
@@ -188,7 +185,7 @@ export async function createIndispo(indispo: any, token: string): Promise<ApiRes
     if (value !== undefined) formData.append(key, String(value));
   });
   formData.append('token', token);
-  const response = await fetch(getApiUrl('/api/indispos'), {
+  const response = await fetch(`${BASE_URL}/api/indispos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formData.toString(),
@@ -198,7 +195,7 @@ export async function createIndispo(indispo: any, token: string): Promise<ApiRes
 }
 
 export async function deleteIndispo(indispoId: number, token: string): Promise<ApiResponse<void>> {
-  const response = await fetch(getApiUrl(`/api/indispos/${indispoId}`), {
+  const response = await fetch(`${BASE_URL}/api/indispos/${indispoId}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `token=${token}`,
@@ -213,7 +210,7 @@ export async function importMatches(file: File, token: string): Promise<ApiRespo
   const formData = new FormData();
   formData.append('file', file);
   formData.append('token', token);
-  const response = await fetch(getApiUrl('/api/import'), {
+  const response = await fetch(`${BASE_URL}/api/import`, {
     method: 'POST',
     body: formData,
   });
@@ -222,7 +219,7 @@ export async function importMatches(file: File, token: string): Promise<ApiRespo
 }
 
 export async function exportICal(token: string): Promise<ApiResponse<Blob>> {
-  const response = await fetch(getApiUrl('/api/export/ical', { token }));
+  const response = await fetch(`${BASE_URL}/api/export/ical?token=${token}`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.blob(), status: response.status };
 }
@@ -230,7 +227,7 @@ export async function exportICal(token: string): Promise<ApiResponse<Blob>> {
 // ==================== APP INFO ====================
 
 export async function getAppInfo(): Promise<ApiResponse<any>> {
-  const response = await fetch(getApiUrl('/api/app-info'));
+  const response = await fetch(`${BASE_URL}/api/app-info`);
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }

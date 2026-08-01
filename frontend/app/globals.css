@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* FullCalendar CSS - REQUIRED for FullCalendar to work */
+@import '@fullcalendar/core/main.css';
+@import '@fullcalendar/daygrid/main.css';
+
 /* Custom styles for FullCalendar */
 .fc {
   font-family: system-ui, -apple-system, sans-serif;

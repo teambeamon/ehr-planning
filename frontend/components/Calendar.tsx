@@ -1,12 +1,27 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import dynamic from 'next/dynamic';
 import { Match } from '@/lib/types';
 import { getMatches } from '@/lib/api';
 import { parseApiDate } from '@/lib/api';
+
+// Charge FullCalendar dynamiquement pour éviter les erreurs SSR
+const FullCalendar = dynamic(
+  () => import('@fullcalendar/react'),
+  { ssr: false }
+);
+
+// Plugins - ne pas charger en SSR
+const dayGridPlugin = dynamic(
+  () => import('@fullcalendar/daygrid'),
+  { ssr: false }
+);
+
+const interactionPlugin = dynamic(
+  () => import('@fullcalendar/interaction'),
+  { ssr: false }
+);
 
 interface CalendarProps {
   saison?: string;
@@ -99,9 +114,7 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
           events={events}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
-          height="auto"
-          contentHeight={600}
-          aspectRatio={1.5}
+          height={600}
           dayMaxEvents={3}
           moreLinkClassNames="text-blue-600 dark:text-blue-400"
           eventClassNames="cursor-pointer hover:opacity-90 transition-opacity"
