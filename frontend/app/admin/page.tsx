@@ -97,7 +97,7 @@ export default function AdminPage() {
       return;
     }
     
-    if (res.data) {
+    if (res.data && res.data.token) {
       // Le backend retourne {token: string, username: string, role: string}
       // pas {user: {...}, token: string}
       setUser(res.data);
