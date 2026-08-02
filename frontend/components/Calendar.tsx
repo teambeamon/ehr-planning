@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Match } from '@/lib/types';
 import { getMatches } from '@/lib/api';
@@ -12,16 +12,9 @@ const FullCalendar = dynamic(
   { ssr: false }
 );
 
-// Plugins - ne pas charger en SSR
-const dayGridPlugin = dynamic(
-  () => import('@fullcalendar/daygrid'),
-  { ssr: false }
-);
-
-const interactionPlugin = dynamic(
-  () => import('@fullcalendar/interaction'),
-  { ssr: false }
-);
+// Importer les plugins directement (FullCalendar v6+ les supporte en ESM)
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 interface CalendarProps {
   saison?: string;
@@ -30,7 +23,6 @@ interface CalendarProps {
 }
 
 export default function Calendar({ saison, onDateSelect, onEventClick }: CalendarProps) {
-  const calendarRef = useRef<any>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,7 +88,6 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
       
       <div className="rounded-lg overflow-hidden">
         <FullCalendar
-          ref={calendarRef}
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           locale="fr"
