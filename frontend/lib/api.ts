@@ -270,6 +270,26 @@ export interface ImportResult {
   message: string;
   total_matches?: number;
   processed_matches?: number;
+  import_id?: string;
+}
+
+export interface ImportProgress {
+  import_id: string;
+  status: string;
+  progress: number;
+  message: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AppVersionInfo {
+  version: string;
+  app_version_code?: string;
+  beta?: boolean;
+  last_updated?: string;
+  last_commit?: string;
+  deploy_message?: string;
+  last_import?: any;
 }
 
 export interface PreviewResult {
@@ -320,8 +340,29 @@ export async function exportICal(token: string): Promise<ApiResponse<Blob>> {
 
 // ==================== APP INFO ====================
 
-export async function getAppInfo(): Promise<ApiResponse<AppInfo>> {
+export async function getAppInfo(): Promise<ApiResponse<AppVersionInfo>> {
   const response = await fetch(getApiUrl('/api/app-info'));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  return { data: await response.json(), status: response.status };
+}
+
+export async function getImportProgress(importId: string, token: string): Promise<ApiResponse<ImportProgress>> {
+  const response = await fetch(getApiUrl(`/api/import/progress/${importId}`, { token }));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  return { data: await response.json(), status: response.status };
+}
+
+export async function incrementVersion(token: string, commitMessage?: string): Promise<ApiResponse<{status: string; version: string; last_updated: string}>> {
+  const formData = new URLSearchParams();
+  formData.append('token', token);
+  if (commitMessage) {
+    formData.append('commit_message', commitMessage);
+  }
+  const response = await fetch(getApiUrl('/api/version/deploy'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }

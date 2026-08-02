@@ -104,6 +104,22 @@ def db_init():
             status TEXT DEFAULT 'ok',
             message TEXT DEFAULT ''
         );
+        CREATE TABLE IF NOT EXISTS app_metadata (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            version TEXT DEFAULT '1.0.0',
+            last_updated TEXT DEFAULT '',
+            last_commit TEXT DEFAULT '',
+            deploy_message TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS import_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            import_id TEXT UNIQUE,
+            status TEXT DEFAULT 'starting',
+            progress INTEGER DEFAULT 0,
+            message TEXT DEFAULT '',
+            created_at TEXT DEFAULT '',
+            updated_at TEXT DEFAULT ''
+        );
         CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
             username TEXT NOT NULL,
@@ -163,6 +179,15 @@ def db_init():
                 db_execute("UPDATE matches SET saison=? WHERE id=?", (s, r["id"]))
     except Exception as e:
         print(f"[WARN] backfill saison: {e}")
+
+    # Initialiser la version de l'application
+    try:
+        metadata = db_fetchone("SELECT * FROM app_metadata LIMIT 1")
+        if not metadata:
+            db_execute("INSERT INTO app_metadata (version, last_updated, last_commit, deploy_message) VALUES (?, ?, ?, ?)",
+                       ("1.0.0", datetime.now().isoformat(), "", "Initial version"))
+    except Exception as e:
+        print(f"[INIT] Initialisation app_metadata: {e}")
 
 # ── Import Excel ──────────────────────────────────────────────────────────────
 
@@ -480,10 +505,42 @@ def parse_excel(path):
             })
     return matches
 
-def do_import(path, filename):
+def do_import(path, filename, progress_callback=None):
+    """
+    Importe les matchs depuis un fichier Excel.
+    progress_callback est une fonction optionnelle qui prend (progress, status, message) pour la barre de progression.
+    """
+    import uuid
     now = datetime.now().isoformat()
-    try: parsed = parse_excel(path)
+    
+    # Générer un ID unique pour cet import
+    import_id = str(uuid.uuid4())
+    
+    # Initialiser la progression dans la base de données
+    try:
+        db_execute("INSERT INTO import_progress (import_id, status, progress, message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                   (import_id, "parsing", 0, "Début du parsing du fichier...", now, now))
+        if progress_callback:
+            progress_callback(0, "parsing", "Début du parsing du fichier...")
+    except:
+        pass
+    
+    try: 
+        parsed = parse_excel(path)
+        # Mettre à jour la progression après le parsing
+        try:
+            db_execute("UPDATE import_progress SET status=?, progress=?, message=?, updated_at=? WHERE import_id=?",
+                       ("processing", 10, f"Fichier parsé: {len(parsed)} matchs trouvés", now, import_id))
+            if progress_callback:
+                progress_callback(10, "processing", f"Fichier parsé: {len(parsed)} matchs trouvés")
+        except:
+            pass
     except Exception as e:
+        try:
+            db_execute("UPDATE import_progress SET status=?, progress=?, message=?, updated_at=? WHERE import_id=?",
+                       ("error", 0, f"Erreur lors du parsing: {str(e)}", now, import_id))
+        except:
+            pass
         return {"status":"error","message":str(e),"created":0,"updated":0,"skipped":0,"filename":filename,"total_matches":0,"processed_matches":0}
 
     created = updated = skipped = 0
@@ -514,23 +571,52 @@ def do_import(path, filename):
 
     # Exécuter les updates par lots de 50
     BATCH = 50
-    for i in range(0, len(to_update), BATCH):
+    total_batches = (len(to_update) // BATCH) + (1 if len(to_update) % BATCH else 0)
+    for batch_num, i in enumerate(range(0, len(to_update), BATCH)):
         batch = to_update[i:i+BATCH]
         for args in batch:
             db_execute("UPDATE matches SET match_text=?,opponent=?,home=?,time_str=?,match_type=?,salle=?,saison=?,updated_at=? WHERE id=?", args)
+        # Mettre à jour la progression
+        progress = 20 + int((batch_num + 1) / max(total_batches, 1) * 40)
+        try:
+            db_execute("UPDATE import_progress SET status=?, progress=?, message=?, updated_at=? WHERE import_id=?",
+                       ("updating", progress, f"Mise à jour des matchs: {batch_num + 1}/{total_batches} lots", now, import_id))
+            if progress_callback:
+                progress_callback(progress, "updating", f"Mise à jour des matchs: {batch_num + 1}/{total_batches} lots")
+        except:
+            pass
 
     # Exécuter les inserts par lots de 50
-    for i in range(0, len(to_insert), BATCH):
+    total_insert_batches = (len(to_insert) // BATCH) + (1 if len(to_insert) % BATCH else 0)
+    for batch_num, i in enumerate(range(0, len(to_insert), BATCH)):
         batch = to_insert[i:i+BATCH]
         for args in batch:
             db_execute("""INSERT INTO matches (date_str,date_iso,team_name,coach,match_text,opponent,home,
                           time_str,match_type,note,manually_edited,excel_import_id,created_at,updated_at,salle,journee,saison)
                           VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?)""", args)
+        # Mettre à jour la progression
+        progress = 60 + int((batch_num + 1) / max(total_insert_batches, 1) * 30)
+        try:
+            db_execute("UPDATE import_progress SET status=?, progress=?, message=?, updated_at=? WHERE import_id=?",
+                       ("inserting", progress, f"Insertion des matchs: {batch_num + 1}/{total_insert_batches} lots", now, import_id))
+            if progress_callback:
+                progress_callback(progress, "inserting", f"Insertion des matchs: {batch_num + 1}/{total_insert_batches} lots")
+        except:
+            pass
+
+    # Finaliser l'import
+    try:
+        db_execute("UPDATE import_progress SET status=?, progress=?, message=?, updated_at=? WHERE import_id=?",
+                   ("completed", 100, f"Import terminé: {created} créés, {updated} mis à jour, {skipped} ignorés", now, import_id))
+        if progress_callback:
+            progress_callback(100, "completed", f"Import terminé: {created} créés, {updated} mis à jour, {skipped} ignorés")
+    except:
+        pass
 
     db_execute("INSERT INTO import_logs (filename,imported_at,rows_created,rows_updated,rows_skipped,status,message) VALUES (?,?,?,?,?,?,?)",
                (filename,now,created,updated,skipped,"ok",""))
     return {"status":"ok","filename":filename,"created":created,"updated":updated,"skipped":skipped,"message":"",
-            "total_matches":total_matches,"processed_matches":created+updated+skipped}
+            "total_matches":total_matches,"processed_matches":created+updated+skipped,"import_id":import_id}
 
 # ── App FastAPI ───────────────────────────────────────────────────────────────
 
@@ -653,6 +739,116 @@ def logout(token: str=Form("")):
 def me(token: str=""):
     try: u = _auth(token); return {"username": u["username"], "role": u["role"]}
     except: return {"username": None, "role": None}
+
+
+# ── Version et Métadonnées ────────────────────────────────────────────────────
+
+def _increment_version():
+    """Incrémente la version selon le versionnement sémantique."""
+    metadata = db_fetchone("SELECT version FROM app_metadata LIMIT 1")
+    if not metadata or not metadata["version"]:
+        return "1.0.0"
+    
+    current_version = metadata["version"]
+    parts = current_version.split('.')
+    
+    if len(parts) != 3:
+        return "1.0.0"
+    
+    try:
+        major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
+        # Incrémenter la version patch pour les corrections de bugs
+        new_version = f"{major}.{minor}.{patch + 1}"
+        
+        now = datetime.now().isoformat()
+        # Mettre à jour la version
+        db_execute("UPDATE app_metadata SET version=?, last_updated=?, deploy_message=? WHERE id=1",
+                   (new_version, now, f"Auto-increment from {current_version} to {new_version}"))
+        
+        return new_version
+    except:
+        return current_version
+
+
+def _get_app_version():
+    """Récupère la version actuelle de l'application."""
+    metadata = db_fetchone("SELECT version, last_updated, last_commit, deploy_message FROM app_metadata LIMIT 1")
+    if not metadata:
+        # Créer une entrée par défaut
+        now = datetime.now().isoformat()
+        db_execute("INSERT INTO app_metadata (version, last_updated, last_commit, deploy_message) VALUES (?, ?, ?, ?)",
+                   ("1.0.0", now, "", "Initial version"))
+        return {"version": "1.0.0", "last_updated": now, "last_commit": "", "deploy_message": "Initial version"}
+    
+    return {
+        "version": metadata["version"],
+        "last_updated": metadata["last_updated"],
+        "last_commit": metadata["last_commit"],
+        "deploy_message": metadata["deploy_message"]
+    }
+
+
+@app.post("/api/version/increment")
+def increment_version(token: str=Form(""), version_type: str=Form("patch")):
+    """Incrémente la version de l'application."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    
+    version = _increment_version()
+    
+    # Mettre à jour le last_commit avec un message
+    db_execute("UPDATE app_metadata SET last_commit=?, deploy_message=? WHERE id=1",
+               (now, f"Manual increment to {version}"))
+    
+    return {"status": "ok", "version": version, "last_updated": now}
+
+
+@app.post("/api/version/deploy")
+def deploy_version(token: str=Form(""), commit_message: str=Form("")):
+    """Marque un nouveau déploiement et incrémente automatiquement la version."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    
+    # Incrémenter la version
+    version = _increment_version()
+    
+    # Mettre à jour avec les informations de déploiement
+    db_execute("UPDATE app_metadata SET last_updated=?, last_commit=?, deploy_message=? WHERE id=1",
+               (now, now, commit_message or f"Deployed version {version}"))
+    
+    return {"status": "ok", "version": version, "last_updated": now, "message": "Version incrémentée et déploiement enregistré"}
+
+
+@app.post("/api/version/deploy-auto")
+def deploy_version_auto(secret: str=Form(""), commit_message: str=Form("")):
+    """
+    Endpoint pour le déploiement automatique (appelé par des hooks CI/CD).
+    Utilise un secret spécial au lieu d'un token utilisateur.
+    """
+    # Vérifier le secret de déploiement automatique
+    DEPLOY_SECRET = os.environ.get("DEPLOY_AUTO_SECRET", "")
+    if not DEPLOY_SECRET:
+        raise HTTPException(403, "Déploiement automatique désactivé (DEPLOY_AUTO_SECRET non configuré)")
+    if not secrets.compare_digest(secret, DEPLOY_SECRET):
+        raise HTTPException(403, "Secret de déploiement invalide")
+    
+    now = datetime.now().isoformat()
+    
+    # Incrémenter la version
+    version = _increment_version()
+    
+    # Mettre à jour avec les informations de déploiement
+    db_execute("UPDATE app_metadata SET last_updated=?, last_commit=?, deploy_message=? WHERE id=1",
+               (now, now, commit_message or f"Auto-deployed version {version}"))
+    
+    return {"status": "ok", "version": version, "last_updated": now, "message": "Déploiement automatique enregistré"
+
+
+@app.get("/api/version")
+def get_version():
+    """Retourne la version actuelle et les métadonnées de l'application."""
+    return _get_app_version()
+
 
 # ── Matchs ────────────────────────────────────────────────────────────────────
 
@@ -781,9 +977,15 @@ APP_VERSION = "1.3.0-beta"
 @app.get("/api/app-info")
 def app_info():
     last_import = db_fetchone("SELECT filename, imported_at, rows_created, rows_updated FROM import_logs ORDER BY imported_at DESC LIMIT 1")
+    # Obtenir la version et les métadonnées de la base de données
+    app_version_data = _get_app_version()
     return {
-        "version": APP_VERSION,
+        "version": app_version_data["version"],
+        "app_version_code": APP_VERSION,
         "beta": True,
+        "last_updated": app_version_data["last_updated"],
+        "last_commit": app_version_data["last_commit"],
+        "deploy_message": app_version_data["deploy_message"],
         "last_import": last_import
     }
 
@@ -906,10 +1108,35 @@ async def import_excel(file: UploadFile=File(...), token: str=Form("")):
     finally: os.unlink(tmp_path)
     return result
 
+
+@app.get("/api/import/progress/{import_id}")
+def get_import_progress(import_id: str, token: str=""):
+    """Retourne la progression d'un import en cours."""
+    _auth(token)
+    progress_data = db_fetchone("SELECT * FROM import_progress WHERE import_id=?", (import_id,))
+    if not progress_data:
+        return {"error": "Import non trouvé", "progress": 0, "status": "not_found"}
+    return {
+        "import_id": progress_data["import_id"],
+        "status": progress_data["status"],
+        "progress": progress_data["progress"],
+        "message": progress_data["message"],
+        "created_at": progress_data["created_at"],
+        "updated_at": progress_data["updated_at"]
+    }
+
+
 @app.get("/api/import/logs")
 def import_logs(token: str=""):
     _auth(token)
     return db_fetchall("SELECT * FROM import_logs ORDER BY imported_at DESC LIMIT 20")
+
+
+@app.get("/api/import/active")
+def active_imports(token: str=""):
+    """Retourne les imports en cours."""
+    _auth(token)
+    return db_fetchall("SELECT * FROM import_progress WHERE status != 'completed' AND status != 'error' ORDER BY created_at DESC LIMIT 10")
 
 # ── Export iCal ───────────────────────────────────────────────────────────────
 

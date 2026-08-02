@@ -64,6 +64,16 @@ export interface AppInfo {
   turso_connected: boolean;
 }
 
+export interface AppVersion {
+  version: string;
+  app_version_code?: string;
+  beta?: boolean;
+  last_updated?: string;
+  last_commit?: string;
+  deploy_message?: string;
+  last_import?: any;
+}
+
 export interface LoginResponse {
   token: string;
   user: User;

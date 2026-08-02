@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, previewFile, getAppInfo, formatDateForDisplay, LoginResponse } from '@/lib/api';
+import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, previewFile, getAppInfo, getImportProgress, incrementVersion, formatDateForDisplay, LoginResponse } from '@/lib/api';
 import { User, Saison, Match } from '@/lib/types';
 
 export default function AdminPage() {
@@ -23,13 +23,24 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [appInfo, setAppInfo] = useState<{ version: string; turso_connected?: boolean; last_import?: any; beta?: boolean } | null>(null);
+  const [appInfo, setAppInfo] = useState<{ version: string; app_version_code?: string; beta?: boolean; last_updated?: string; last_commit?: string; deploy_message?: string; last_import?: any; turso_connected?: boolean } | null>(null);
+  const [currentImportId, setCurrentImportId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     checkAuth();
     fetchAppInfo();
     fetchSaisons();
   }, []);
+
+  // Nettoyer le polling lors du démontage
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   useEffect(() => {
     if (user?.token) {
@@ -102,6 +113,89 @@ export default function AdminPage() {
     const res = await getMatches({ limit: 20 });
     if (res.data) {
       setMatches(res.data);
+    }
+  };
+
+  // Fonction pour vérifier la progression de l'import
+  const checkImportProgress = async () => {
+    if (!currentImportId || !token) return;
+    
+    try {
+      const res = await getImportProgress(currentImportId, token);
+      if (res.data) {
+        setImportProgress(res.data.progress || 0);
+        
+        // Si l'import est terminé ou en erreur, arrêter le polling
+        if (res.data.status === 'completed' || res.data.status === 'error' || res.data.status === 'not_found') {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          if (res.data.status === 'completed') {
+            setImportProgress(100);
+            fetchMatches();
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Erreur lors de la vérification de la progression:', err);
+    }
+  };
+
+  // Démarrer le polling de la progression
+  const startProgressPolling = (importId: string) => {
+    setCurrentImportId(importId);
+    setImportProgress(0);
+    
+    // Arrêter tout polling existant
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+    
+    // Démarrer un nouveau polling toutes les 500ms
+    const interval = setInterval(() => {
+      checkImportProgress();
+    }, 500);
+    setPollingInterval(interval);
+  };
+
+  // Arrêter le polling
+  const stopProgressPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+    setCurrentImportId(null);
+  };
+
+  // Incrémenter la version et enregistrer un déploiement
+  const handleDeployVersion = async (commitMessage: string = '') => {
+    if (!token) {
+      setError('Veuillez vous connecter');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const res = await incrementVersion(token, commitMessage || 'Déploiement automatique');
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setSuccess(`Version incrémentée: ${res.data?.version} à ${res.data?.last_updated}`);
+        // Rafraîchir les infos de l'app
+        setTimeout(() => {
+          fetchAppInfo();
+          setSuccess(null);
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Erreur lors de l\'incrément de version:', err);
+      setError('Erreur réseau');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -279,10 +373,7 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     setImportProgress(0);
-    
-    // Estimer la progression basée sur la taille du fichier
-    // Une estimation simple: 30% pour le parsing, 70% pour l'import
-    setImportProgress(10);
+    stopProgressPolling();
     
     try {
       const res = await importMatches(file, token);
@@ -291,22 +382,31 @@ export default function AdminPage() {
         setError(res.error);
         setImportProgress(0);
       } else {
-        setImportProgress(100);
+        // Si on a un import_id, démarrer le polling
+        if (res.data?.import_id) {
+          startProgressPolling(res.data.import_id);
+        } else {
+          // Sinon, afficher 100% directement
+          setImportProgress(100);
+        }
+        
         const created = res.data?.created || 0;
         const updated = res.data?.updated || 0;
         const skipped = res.data?.skipped || 0;
         const total = res.data?.total_matches || (created + updated + skipped);
         const processed = res.data?.processed_matches || (created + updated + skipped);
         
-        setSuccess(`Import réussi ! ${created} créés, ${updated} mis à jour, ${skipped} ignorés (${processed}/${total} traités)`);
+        setSuccess(`Import démarré ! ${created} créés, ${updated} mis à jour, ${skipped} ignorés (${processed}/${total} traités)`);
         
-        // Réinitialiser après un délai
-        setTimeout(() => {
-          setImportProgress(0);
-          setFile(null);
-          setFilePreview(null);
-          fetchMatches();
-        }, 2000);
+        // Réinitialiser après un délai (si pas de polling)
+        if (!res.data?.import_id) {
+          setTimeout(() => {
+            setImportProgress(0);
+            setFile(null);
+            setFilePreview(null);
+            fetchMatches();
+          }, 2000);
+        }
         
         setTimeout(() => setSuccess(null), 5000);
       }
@@ -314,6 +414,7 @@ export default function AdminPage() {
       console.error('Erreur lors de l\'import:', err);
       setError('Erreur réseau lors de l\'import');
       setImportProgress(0);
+      stopProgressPolling();
     } finally {
       setLoading(false);
     }
@@ -426,11 +527,34 @@ export default function AdminPage() {
         {/* App Info */}
         {appInfo && (
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Informations Application</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="flex items-center">
                 <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Version :</span>
                 <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{appInfo.version}</span>
               </div>
+              {appInfo.app_version_code && (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Code :</span>
+                  <span className="font-mono text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded">{appInfo.app_version_code}</span>
+                </div>
+              )}
+              {appInfo.last_updated && (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Dernière MAJ :</span>
+                  <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                    {formatDateForDisplay(appInfo.last_updated)}
+                  </span>
+                </div>
+              )}
+              {appInfo.deploy_message && (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Message :</span>
+                  <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate max-w-[200px]" title={appInfo.deploy_message}>
+                    {appInfo.deploy_message}
+                  </span>
+                </div>
+              )}
               {appInfo.turso_connected !== undefined ? (
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Turso :</span>
@@ -455,6 +579,18 @@ export default function AdminPage() {
                 </span>
               </div>
             </div>
+            {/* Bouton pour incrémenter la version */}
+            {user?.role === 'admin' && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => handleDeployVersion('Nouveau déploiement')}
+                  disabled={loading}
+                  className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Incrémentation...' : 'Incrémenter Version'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
