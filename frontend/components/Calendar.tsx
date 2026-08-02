@@ -69,7 +69,6 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
       journee: match.journee,
       saison: match.saison,
     },
-    className: 'bg-blue-500 dark:bg-blue-600 text-white border-0',
   }));
 
   return (

@@ -3,18 +3,19 @@
 
 import { User, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo } from './types';
 
-const getApiUrl = (path: string, params?: Record<string, string | number>): string => {
+// URL de base pour l'API - configurée via variables d'environnement
+const getBaseUrl = (): string => {
+  // Côté client: utiliser window.location.origin
   if (typeof window !== 'undefined') {
-    const url = new URL(path, window.location.origin);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) url.searchParams.append(key, String(value));
-      });
-    }
-    return url.toString();
+    return window.location.origin;
   }
-  // SSR: utilise localhost:3000 (Next.js) ou configure selon ton env
-  const url = new URL(path, 'http://localhost:3000');
+  // Côté serveur: utiliser NEXT_PUBLIC_API_URL si disponible, sinon localhost:8000
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+};
+
+const getApiUrl = (path: string, params?: Record<string, string | number>): string => {
+  const baseUrl = getBaseUrl();
+  const url = new URL(path, baseUrl);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) url.searchParams.append(key, String(value));
@@ -58,7 +59,7 @@ export async function logout(token: string): Promise<ApiResponse<void>> {
   return { status: response.status };
 }
 
-export async function getMe(token: string): Promise<ApiResponse<any>> {
+export async function getMe(token: string): Promise<ApiResponse<User>> {
   const response = await fetch(getApiUrl('/api/me', { token }));
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Token invalide' }));
@@ -70,7 +71,7 @@ export async function getMe(token: string): Promise<ApiResponse<any>> {
 
 // ==================== SAISONS ====================
 
-export async function getSaisons(): Promise<ApiResponse<any[]>> {
+export async function getSaisons(): Promise<ApiResponse<Saison[]>> {
   const response = await fetch(getApiUrl('/api/saisons'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
@@ -92,20 +93,20 @@ export async function setCurrentSaison(saison: string, token: string): Promise<A
 
 // ==================== MATCHS ====================
 
-export async function getMatches(params?: { saison?: string; salle?: string; journee?: number; limit?: number; offset?: number }): Promise<ApiResponse<any[]>> {
+export async function getMatches(params?: { saison?: string; salle?: string; journee?: number; limit?: number; offset?: number }): Promise<ApiResponse<Match[]>> {
   const response = await fetch(getApiUrl('/api/matches', params));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
   return { data: Array.isArray(data) ? data : [], status: response.status };
 }
 
-export async function getMatchById(matchId: number): Promise<ApiResponse<any>> {
+export async function getMatchById(matchId: number): Promise<ApiResponse<Match>> {
   const response = await fetch(getApiUrl(`/api/matches/${matchId}`));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }
 
-export async function createMatch(match: any, token: string): Promise<ApiResponse<any>> {
+export async function createMatch(match: Omit<Match, 'id'>, token: string): Promise<ApiResponse<Match>> {
   const formData = new URLSearchParams();
   Object.entries(match).forEach(([key, value]) => {
     if (value !== undefined) formData.append(key, String(value));
@@ -120,7 +121,7 @@ export async function createMatch(match: any, token: string): Promise<ApiRespons
   return { data: await response.json(), status: response.status };
 }
 
-export async function updateMatch(matchId: number, match: any, token: string): Promise<ApiResponse<any>> {
+export async function updateMatch(matchId: number, match: Partial<Match>, token: string): Promise<ApiResponse<Match>> {
   const formData = new URLSearchParams();
   Object.entries(match).forEach(([key, value]) => {
     if (value !== undefined) formData.append(key, String(value));
@@ -147,13 +148,13 @@ export async function deleteMatch(matchId: number, token: string): Promise<ApiRe
 
 // ==================== STATS ====================
 
-export async function getStats(params?: { saison?: string }): Promise<ApiResponse<any>> {
+export async function getStats(params?: { saison?: string }): Promise<ApiResponse<Stats>> {
   const response = await fetch(getApiUrl('/api/stats', params));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };
 }
 
-export async function getStatsBySalle(params?: { saison?: string }): Promise<ApiResponse<any[]>> {
+export async function getStatsBySalle(params?: { saison?: string }): Promise<ApiResponse<StatsSalle[]>> {
   const response = await fetch(getApiUrl('/api/stats/salles', params));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
@@ -162,7 +163,7 @@ export async function getStatsBySalle(params?: { saison?: string }): Promise<Api
 
 // ==================== EQUIPES ====================
 
-export async function getTeams(): Promise<ApiResponse<any[]>> {
+export async function getTeams(): Promise<ApiResponse<Team[]>> {
   const response = await fetch(getApiUrl('/api/teams'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
@@ -180,14 +181,14 @@ export async function getSalles(): Promise<ApiResponse<string[]>> {
 
 // ==================== INDISPONIBILITES ====================
 
-export async function getIndispos(): Promise<ApiResponse<any[]>> {
+export async function getIndispos(): Promise<ApiResponse<Indispo[]>> {
   const response = await fetch(getApiUrl('/api/indispos'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
   return { data: Array.isArray(data) ? data : [], status: response.status };
 }
 
-export async function createIndispo(indispo: any, token: string): Promise<ApiResponse<any>> {
+export async function createIndispo(indispo: Omit<Indispo, 'id'>, token: string): Promise<ApiResponse<Indispo>> {
   const formData = new URLSearchParams();
   Object.entries(indispo).forEach(([key, value]) => {
     if (value !== undefined) formData.append(key, String(value));
@@ -214,7 +215,7 @@ export async function deleteIndispo(indispoId: number, token: string): Promise<A
 
 // ==================== IMPORT/EXPORT ====================
 
-export async function importMatches(file: File, token: string): Promise<ApiResponse<any>> {
+export async function importMatches(file: File, token: string): Promise<ApiResponse<{ message: string }>> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('token', token);
@@ -222,7 +223,10 @@ export async function importMatches(file: File, token: string): Promise<ApiRespo
     method: 'POST',
     body: formData,
   });
-  if (!response.ok) return { error: 'Erreur', status: response.status };
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur lors de l\'import' }));
+    return { error: error.detail || 'Erreur lors de l\'import', status: response.status };
+  }
   return { data: await response.json(), status: response.status };
 }
 
@@ -234,7 +238,7 @@ export async function exportICal(token: string): Promise<ApiResponse<Blob>> {
 
 // ==================== APP INFO ====================
 
-export async function getAppInfo(): Promise<ApiResponse<any>> {
+export async function getAppInfo(): Promise<ApiResponse<AppInfo>> {
   const response = await fetch(getApiUrl('/api/app-info'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   return { data: await response.json(), status: response.status };

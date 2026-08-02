@@ -20,7 +20,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [appInfo, setAppInfo] = useState<{ version: string; turso_connected: boolean } | null>(null);
+  const [appInfo, setAppInfo] = useState<{ version: string; turso_connected?: boolean; last_import?: any; beta?: boolean } | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -38,14 +38,22 @@ export default function AdminPage() {
     const storedToken = localStorage.getItem('ehr_token');
     const storedUser = localStorage.getItem('ehr_user');
     
-    if (storedToken && storedUser) {
+    if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
       try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        
-        // Vérifier que le token est valide
-        const res = await getMe(storedToken);
-        if (!res.data) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && parsedUser.username) {
+          setToken(storedToken);
+          setUser(parsedUser);
+          
+          // Vérifier que le token est valide
+          const res = await getMe(storedToken);
+          if (!res.data) {
+            localStorage.removeItem('ehr_token');
+            localStorage.removeItem('ehr_user');
+            setUser(null);
+            setToken('');
+          }
+        } else {
           localStorage.removeItem('ehr_token');
           localStorage.removeItem('ehr_user');
           setUser(null);
@@ -97,7 +105,7 @@ export default function AdminPage() {
       return;
     }
     
-    if (res.data && res.data.token) {
+    if (res.data?.token) {
       // Le backend retourne {token: string, username: string, role: string}
       // pas {user: {...}, token: string}
       setUser(res.data);
@@ -106,6 +114,8 @@ export default function AdminPage() {
       localStorage.setItem('ehr_user', JSON.stringify(res.data));
       setSuccess('Connecté avec succès !');
       setTimeout(() => setSuccess(null), 3000);
+    } else {
+      setError('Réponse du serveur invalide');
     }
     setLoading(false);
   };
@@ -271,14 +281,23 @@ export default function AdminPage() {
                 <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Version :</span>
                 <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{appInfo.version}</span>
               </div>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Turso :</span>
-                <span className={`font-mono text-sm px-2 py-1 rounded ${
-                  appInfo.turso_connected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                }`}>
-                  {appInfo.turso_connected ? 'Connecté' : 'Déconnecté'}
-                </span>
-              </div>
+              {appInfo.turso_connected !== undefined ? (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Turso :</span>
+                  <span className={`font-mono text-sm px-2 py-1 rounded ${
+                    appInfo.turso_connected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                  }`}>
+                    {appInfo.turso_connected ? 'Connecté' : 'Déconnecté'}
+                  </span>
+                </div>
+              ) : appInfo.beta !== undefined && (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Mode :</span>
+                  <span className="font-mono text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">
+                    {appInfo.beta ? 'Développement' : 'Production'}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center">
                 <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Env :</span>
                 <span className="font-mono text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">

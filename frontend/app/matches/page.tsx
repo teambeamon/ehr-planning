@@ -48,14 +48,14 @@ export default function MatchesPage() {
 
       // Charger tous les matchs
       const matchesRes = await getMatches({ limit: 500 });
-      if (matchesRes.data) {
+      if (matchesRes.data && Array.isArray(matchesRes.data)) {
         setMatches(matchesRes.data);
 
         // Extraire les salles et saisons uniques
-        const uniqueSalles = Array.from(new Set(matchesRes.data.map(m => m.salle)));
-        const uniqueSaisons = Array.from(new Set(matchesRes.data.map(m => m.saison)));
-        setAllSalles(uniqueSalles);
-        setAllSaisons(uniqueSaisons);
+        const salles = matchesRes.data.map(m => m.salle).filter((v, i, a) => a.indexOf(v) === i);
+        const saisons = matchesRes.data.map(m => m.saison).filter((v, i, a) => a.indexOf(v) === i);
+        setAllSalles(salles);
+        setAllSaisons(saisons);
       }
     } catch (err) {
       console.error('Erreur:', err);

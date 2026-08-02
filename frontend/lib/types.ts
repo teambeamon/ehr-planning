@@ -4,7 +4,7 @@ export interface User {
   id?: number;
   username: string;
   role: 'admin' | 'user';
-  token?: string;
+  token: string;
 }
 
 export interface Team {
@@ -47,6 +47,7 @@ export interface Stats {
 
 export interface StatsSalle {
   salle: string;
+  saison?: string;
   total_matches: number;
   days_distribution: Record<string, number>; // { "1": 10, "2": 3, ... }
   max_matches_per_day: number;

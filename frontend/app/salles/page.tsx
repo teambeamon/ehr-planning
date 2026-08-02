@@ -42,11 +42,11 @@ export default function SallesPage() {
     setLoading(true);
     try {
       const res = await getStatsBySalle({ saison });
-      if (res.data) {
+      if (res.data && Array.isArray(res.data)) {
         setStats(res.data);
         // Extraire les saisons
-        const saisons = res.data.map(s => s.saison);
-        setAllSaisons(Array.from(new Set(saisons)));
+        const saisons = res.data.map(s => s.saison || '').filter((v, i, a) => v && a.indexOf(v) === i);
+        setAllSaisons(saisons);
       }
     } catch (err) {
       setError('Impossible de charger les statistiques');
@@ -187,7 +187,7 @@ export default function SallesPage() {
                         border: 'none',
                         borderRadius: '0.5rem',
                       }}
-                      formatter={(value: any, name: any) => value !== undefined ? [`${value} matchs`, ''] : ['', '']}
+                      formatter={(value: any, name: any) => [value !== undefined && value !== null ? `${value} matchs` : '0 matchs', '']}
                     />
                     <Bar dataKey="matchs" fill="#3b82f6">
                       {chartData.map((entry, index) => (
