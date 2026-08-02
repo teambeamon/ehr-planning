@@ -1,6 +1,8 @@
 // Client API pour communiquer avec le backend FastAPI
 // Configuration pour Vercel: frontend et backend sur la même origine
 
+import { User, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo } from './types';
+
 const getApiUrl = (path: string, params?: Record<string, string | number>): string => {
   if (typeof window !== 'undefined') {
     const url = new URL(path, window.location.origin);
