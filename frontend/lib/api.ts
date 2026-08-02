@@ -32,7 +32,14 @@ export interface ApiResponse<T> {
 
 // ==================== AUTHENTIFICATION ====================
 
-export async function login(username: string, password: string): Promise<ApiResponse<User>> {
+// Définir LoginResponse localement pour éviter les problèmes de dépendances circulaires
+export interface LoginResponse {
+  token: string;
+  username: string;
+  role: string;
+}
+
+export async function login(username: string, password: string): Promise<ApiResponse<LoginResponse>> {
   const response = await fetch(getApiUrl('/api/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -46,6 +53,26 @@ export async function login(username: string, password: string): Promise<ApiResp
   return { data, status: response.status };
 }
 
+export async function getMe(token: string): Promise<ApiResponse<User>> {
+  const response = await fetch(getApiUrl('/api/me', { token }));
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Token invalide' }));
+    return { error: error.detail, status: response.status };
+  }
+  const data = await response.json().catch(() => null);
+  // Le backend retourne {username, role, token} pour /api/me aussi
+  if (data) {
+    // Normaliser pour correspondre au type User
+    const userData: User = {
+      username: data.username,
+      role: data.role as 'admin' | 'user',
+      token: data.token
+    };
+    return { data: userData, status: response.status };
+  }
+  return { error: 'Données utilisateur invalides', status: response.status };
+}
+
 export async function logout(token: string): Promise<ApiResponse<void>> {
   const response = await fetch(getApiUrl('/api/logout'), {
     method: 'POST',
@@ -57,16 +84,6 @@ export async function logout(token: string): Promise<ApiResponse<void>> {
     return { error: error.detail, status: response.status };
   }
   return { status: response.status };
-}
-
-export async function getMe(token: string): Promise<ApiResponse<User>> {
-  const response = await fetch(getApiUrl('/api/me', { token }));
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Token invalide' }));
-    return { error: error.detail, status: response.status };
-  }
-  const data = await response.json().catch(() => null);
-  return { data, status: response.status };
 }
 
 // ==================== SAISONS ====================
@@ -251,6 +268,32 @@ export interface ImportResult {
   updated: number;
   skipped: number;
   message: string;
+  total_matches?: number;
+  processed_matches?: number;
+}
+
+export interface PreviewResult {
+  status: string;
+  filename: string;
+  dates: string[];
+  teams: string[];
+  date_count: number;
+  team_count: number;
+}
+
+export async function previewFile(file: File, token: string): Promise<ApiResponse<PreviewResult>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('token', token);
+  const response = await fetch(getApiUrl('/api/import/preview'), {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur lors de la prévisualisation' }));
+    return { error: error.detail || error.message || 'Erreur lors de la prévisualisation', status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
 }
 
 export async function importMatches(file: File, token: string): Promise<ApiResponse<ImportResult>> {

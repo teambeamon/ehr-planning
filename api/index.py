@@ -325,10 +325,129 @@ def _read_xlsx(path):
             for r in range(HEADER_ROWS+1, sh.max_row+1)]
     return teams, rows
 
+
+def _detect_file_format(sh):
+    """Détecte si le fichier utilise le nouveau format (salles en colonnes 0-3) ou l'ancien (couleurs de fond)."""
+    # Vérifier si les colonnes 0-3 contiennent des noms de salles
+    salle_keywords = ['hall', 'poly', 'rodemack', 'kanfen']
+    for r in range(8, 11):
+        for c in range(4):
+            val = str(sh.cell_value(r, c)).lower()
+            if any(kw in val for kw in salle_keywords):
+                return "new_format"
+    # Vérifier si la ligne TEAM_ROW contient des noms d'équipes
+    if sh.nrows > TEAM_ROW:
+        team_val = str(sh.cell_value(TEAM_ROW, FIRST_TEAM_COL)).strip()
+        if team_val and len(team_val) > 3 and any(letter.isalpha() for letter in team_val):
+            return "standard"
+    return "standard"
+
+
+def _read_xls_new_format(path):
+    """Parseur pour le nouveau format de fichier où les salles sont dans les colonnes 0-3."""
+    wb = xlrd.open_workbook(path, formatting_info=True)
+    sh = wb.sheet_by_name("Planning")
+    
+    # Lire les salles pour chaque colonne d'équipe (lignes 8-10)
+    # Mapping: colonne -> salle
+    salle_map = {}
+    salle_keywords = {
+        'hall': 'Hettange Hall',
+        'poly': 'Hettange Poly', 
+        'rodemack': 'Rodemack',
+        'kanfen': 'Kanfen'
+    }
+    
+    for c in range(5, sh.ncols):
+        # Vérifier les lignes 8, 9, 10 pour cette colonne
+        for r in range(8, 11):
+            val = str(sh.cell_value(r, c)).lower()
+            for kw, salle in salle_keywords.items():
+                if kw in val:
+                    salle_map[c] = salle
+                    break
+            if c in salle_map:
+                break
+        # Si aucune salle trouvée, essayer avec la couleur de fond
+        if c not in salle_map:
+            try:
+                xf = wb.xf_list[sh.cell_xf_index(14, c)]
+                bg = xf.background.pattern_colour_index
+                salle_map[c] = BG_TO_SALLE.get(bg, "")
+            except:
+                salle_map[c] = ""
+    
+    # Lire les noms des équipes (ligne 11)
+    teams = {}
+    for c in range(5, sh.ncols):
+        name = _s(sh.cell_value(11, c))
+        coach = _s(sh.cell_value(13, c)) if sh.nrows > 13 else ""
+        if name:
+            teams[c] = {"name": name, "coach": coach}
+    
+    # Lire les données
+    matches = []
+    current_date = ""
+    
+    for r in range(14, sh.nrows):
+        dv = _s(sh.cell_value(r, DATE_COL))
+        if dv and re.search(r"\d{2}/\d{2}/\d{2}", dv):
+            current_date = dv.replace("\n", " ").strip()
+        if not current_date: 
+            continue
+            
+        for c in range(5, sh.ncols):
+            if c not in teams:
+                continue
+            val = _s(sh.cell_value(r, c))
+            if not val or val in ("0.0", " ") or _noise(val):
+                continue
+            
+            home = _home_val(val)
+            salle = salle_map.get(c, "")
+            
+            # Déterminer la journée (chercher "Journée X" ou "JX" dans les lignes suivantes)
+            journee = ""
+            for jr in range(r+1, min(r+4, sh.nrows)):
+                jval = _s(sh.cell_value(jr, c))
+                if jval and re.search(r"(journée|j\d+)", jval, re.I):
+                    journee = jval.strip()
+                    break
+            
+            matches.append({
+                "date_str": current_date, "date_iso": _iso(current_date),
+                "team_name": teams[c]["name"], "coach": teams[c]["coach"],
+                "match_text": val, "opponent": _opponent(val),
+                "home": home, "time_str": _time(val),
+                "match_type": _mtype(val, journee),
+                "salle": salle,
+                "journee": journee,
+                "excel_import_id": _key(current_date, teams[c]["name"], val),
+            })
+    
+    return matches
+
+
 def parse_excel(path):
-    if path.endswith(".xls") and HAVE_XLRD: teams,rows = _read_xls(path)
-    elif HAVE_OPENPYXL: teams,rows = _read_xlsx(path)
-    else: raise RuntimeError("xlrd ou openpyxl requis")
+    # Essayer le nouveau format en premier pour les fichiers .xls
+    if path.endswith(".xls") and HAVE_XLRD:
+        try:
+            wb = xlrd.open_workbook(path, formatting_info=True)
+            sh = wb.sheet_by_name("Planning")
+            format_type = _detect_file_format(sh)
+            if format_type == "new_format":
+                return _read_xls_new_format(path)
+        except:
+            pass
+    
+    # Utiliser les parseurs standard
+    if path.endswith(".xls") and HAVE_XLRD: 
+        teams,rows = _read_xls(path)
+    elif HAVE_OPENPYXL: 
+        teams,rows = _read_xlsx(path)
+    else: 
+        raise RuntimeError("xlrd ou openpyxl requis")
+    
     matches, current_date = [], ""
     for row in rows:
         # row[-1] = journee_map, row[-2] = bg_map
@@ -365,9 +484,10 @@ def do_import(path, filename):
     now = datetime.now().isoformat()
     try: parsed = parse_excel(path)
     except Exception as e:
-        return {"status":"error","message":str(e),"created":0,"updated":0,"skipped":0,"filename":filename}
+        return {"status":"error","message":str(e),"created":0,"updated":0,"skipped":0,"filename":filename,"total_matches":0,"processed_matches":0}
 
     created = updated = skipped = 0
+    total_matches = len(parsed)
 
     # Charger tous les excel_import_id existants en une seule requête
     existing_rows = db_fetchall("SELECT id, excel_import_id, manually_edited FROM matches WHERE excel_import_id IS NOT NULL")
@@ -409,7 +529,8 @@ def do_import(path, filename):
 
     db_execute("INSERT INTO import_logs (filename,imported_at,rows_created,rows_updated,rows_skipped,status,message) VALUES (?,?,?,?,?,?,?)",
                (filename,now,created,updated,skipped,"ok",""))
-    return {"status":"ok","filename":filename,"created":created,"updated":updated,"skipped":skipped,"message":""}
+    return {"status":"ok","filename":filename,"created":created,"updated":updated,"skipped":skipped,"message":"",
+            "total_matches":total_matches,"processed_matches":created+updated+skipped}
 
 # ── App FastAPI ───────────────────────────────────────────────────────────────
 
@@ -705,6 +826,74 @@ def stats_salles(saison: str=""):
     return {"saison": saison or "toutes", "salles": salles}
 
 # ── Import Excel ──────────────────────────────────────────────────────────────
+
+@app.post("/api/import/preview")
+async def preview_excel(file: UploadFile=File(...), token: str=Form("")):
+    """Retourne un aperçu des dates et équipes dans le fichier Excel sans importer."""
+    _auth(token)
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in (".xls",".xlsx"): raise HTTPException(400,"Fichier .xls ou .xlsx requis")
+    
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await file.read()); tmp_path = tmp.name
+    
+    try:
+        # Parser uniquement pour extraire les dates et équipes
+        if suffix == ".xls" and HAVE_XLRD:
+            wb = xlrd.open_workbook(tmp_path, formatting_info=True)
+            sh = wb.sheet_by_name("Planning")
+            
+            # Extraire les dates
+            dates = set()
+            for r in range(14, sh.nrows):
+                dv = _s(sh.cell_value(r, DATE_COL))
+                if dv and re.search(r"\d{2}/\d{2}/\d{2}", dv):
+                    dates.add(dv.replace("\n", " ").strip())
+            
+            # Extraire les équipes
+            teams = set()
+            for c in range(5, sh.ncols):
+                name = _s(sh.cell_value(11, c))
+                if name:
+                    teams.add(name)
+            
+            return {
+                "status": "ok",
+                "filename": file.filename,
+                "dates": sorted(list(dates)),
+                "teams": sorted(list(teams)),
+                "date_count": len(dates),
+                "team_count": len(teams)
+            }
+        elif HAVE_OPENPYXL:
+            wb = openpyxl.load_workbook(tmp_path, data_only=True)
+            sh = wb["Planning"]
+            
+            dates = set()
+            for r in range(HEADER_ROWS+1, sh.max_row+1):
+                dv = _s(sh.cell(row=r, column=DATE_COL+1).value)
+                if dv and re.search(r"\d{2}/\d{2}/\d{2}", dv):
+                    dates.add(dv.replace("\n", " ").strip())
+            
+            teams = set()
+            for c in range(FIRST_TEAM_COL, sh.max_column+1):
+                name = _s(sh.cell(row=TEAM_ROW+1, column=c+1).value)
+                if name:
+                    teams.add(name)
+            
+            return {
+                "status": "ok",
+                "filename": file.filename,
+                "dates": sorted(list(dates)),
+                "teams": sorted(list(teams)),
+                "date_count": len(dates),
+                "team_count": len(teams)
+            }
+        else:
+            return {"status": "error", "message": "xlrd ou openpyxl requis"}
+    finally:
+        os.unlink(tmp_path)
+
 
 @app.post("/api/import")
 async def import_excel(file: UploadFile=File(...), token: str=Form("")):

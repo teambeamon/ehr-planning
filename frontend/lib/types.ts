@@ -4,7 +4,13 @@ export interface User {
   id?: number;
   username: string;
   role: 'admin' | 'user';
+  token?: string; // Optional car token peut être géré séparément
+}
+
+export interface LoginResponse {
   token: string;
+  username: string;
+  role: string;
 }
 
 export interface Team {

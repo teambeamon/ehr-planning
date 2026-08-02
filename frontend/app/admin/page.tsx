@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, getAppInfo, formatDateForDisplay } from '@/lib/api';
+import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, previewFile, getAppInfo, formatDateForDisplay, LoginResponse } from '@/lib/api';
 import { User, Saison, Match } from '@/lib/types';
 
 export default function AdminPage() {
@@ -17,7 +17,7 @@ export default function AdminPage() {
   const [token, setToken] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
   const [file, setFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<{name: string; size: number; type: string; rows?: any[]} | null>(null);
+  const [filePreview, setFilePreview] = useState<{name: string; size: number; type: string; rows?: any[]; dates?: string[]; teams?: string[]; date_count?: number; team_count?: number} | null>(null);
   const [importProgress, setImportProgress] = useState<number>(0);
   const [isPreviewing, setIsPreviewing] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
@@ -119,11 +119,17 @@ export default function AdminPage() {
     
     if (res.data?.token) {
       // Le backend retourne {token: string, username: string, role: string}
-      // pas {user: {...}, token: string}
-      setUser(res.data);
+      // Créer un objet User à partir de LoginResponse
+      const userData: User = {
+        username: res.data.username,
+        role: res.data.role as 'admin' | 'user',
+        token: res.data.token
+      };
+      
+      setUser(userData);
       setToken(res.data.token);
       localStorage.setItem('ehr_token', res.data.token);
-      localStorage.setItem('ehr_user', JSON.stringify(res.data));
+      localStorage.setItem('ehr_user', JSON.stringify(userData));
       setSuccess('Connecté avec succès !');
       setTimeout(() => setSuccess(null), 3000);
     } else {
@@ -201,24 +207,55 @@ export default function AdminPage() {
   };
 
   const handlePreviewFile = async () => {
-    if (!file) return;
+    if (!file || !token) return;
     
     setIsPreviewing(true);
     setError(null);
     
     try {
-      // Sans bibliothèque xlsx, on affiche juste les infos de base
+      const res = await previewFile(file, token);
+      if (res.error) {
+        setError(res.error);
+        // Afficher au moins les infos de base
+        setFilePreview(prev => prev ? {
+          ...prev,
+          rows: [
+            { message: `Erreur: ${res.error}` },
+            { message: `Nom: ${file.name}` },
+            { message: `Taille: ${(file.size / 1024 / 1024).toFixed(2)} Mo` }
+          ]
+        } : null);
+      } else if (res.data) {
+        setFilePreview(prev => prev ? {
+          ...prev,
+          dates: res.data?.dates || [],
+          teams: res.data?.teams || [],
+          date_count: res.data?.date_count || 0,
+          team_count: res.data?.team_count || 0,
+          rows: [
+            { type: 'info', label: 'Fichier', value: file.name },
+            { type: 'info', label: 'Taille', value: `${(file.size / 1024 / 1024).toFixed(2)} Mo` },
+            { type: 'info', label: 'Dates trouvées', value: res.data?.date_count || 0 },
+            { type: 'info', label: 'Équipes trouvées', value: res.data?.team_count || 0 },
+            ...(res.data?.dates?.slice(0, 10) || []).map((date: string, index: number) => (
+              { type: 'date', label: `Date ${index + 1}`, value: date }
+            )),
+            ...(res.data?.teams?.slice(0, 10) || []).map((team: string, index: number) => (
+              { type: 'team', label: `Équipe ${index + 1}`, value: team }
+            ))
+          ]
+        } : null);
+      }
+    } catch (err) {
+      setError('Impossible de prévisualiser le fichier');
       setFilePreview(prev => prev ? {
         ...prev,
         rows: [
-          { message: 'Prévisualisation non disponible sans bibliothèque Excel' },
-          { message: 'Le fichier sera importé directement' },
+          { message: 'Erreur de connexion au serveur' },
           { message: `Nom: ${file.name}` },
           { message: `Taille: ${(file.size / 1024 / 1024).toFixed(2)} Mo` }
         ]
       } : null);
-    } catch (err) {
-      setError('Impossible de prévisualiser le fichier');
     } finally {
       setIsPreviewing(false);
     }
@@ -243,24 +280,25 @@ export default function AdminPage() {
     setError(null);
     setImportProgress(0);
     
-    // Simuler une progression
-    const progressInterval = setInterval(() => {
-      setImportProgress(prev => {
-        const newProgress = prev + Math.random() * 15;
-        return newProgress >= 90 ? 90 : newProgress;
-      });
-    }, 300);
+    // Estimer la progression basée sur la taille du fichier
+    // Une estimation simple: 30% pour le parsing, 70% pour l'import
+    setImportProgress(10);
     
     try {
       const res = await importMatches(file, token);
-      clearInterval(progressInterval);
       
       if (res.error) {
         setError(res.error);
         setImportProgress(0);
       } else {
         setImportProgress(100);
-        setSuccess(`Import réussi ! ${res.data?.created || 0} matchs créés, ${res.data?.updated || 0} mis à jour, ${res.data?.skipped || 0} ignorés`);
+        const created = res.data?.created || 0;
+        const updated = res.data?.updated || 0;
+        const skipped = res.data?.skipped || 0;
+        const total = res.data?.total_matches || (created + updated + skipped);
+        const processed = res.data?.processed_matches || (created + updated + skipped);
+        
+        setSuccess(`Import réussi ! ${created} créés, ${updated} mis à jour, ${skipped} ignorés (${processed}/${total} traités)`);
         
         // Réinitialiser après un délai
         setTimeout(() => {
@@ -273,7 +311,6 @@ export default function AdminPage() {
         setTimeout(() => setSuccess(null), 5000);
       }
     } catch (err) {
-      clearInterval(progressInterval);
       console.error('Erreur lors de l\'import:', err);
       setError('Erreur réseau lors de l\'import');
       setImportProgress(0);
