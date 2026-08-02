@@ -69,7 +69,8 @@ export async function getMe(token: string): Promise<ApiResponse<any>> {
 export async function getSaisons(): Promise<ApiResponse<any[]>> {
   const response = await fetch(getApiUrl('/api/saisons'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  return { data: await response.json(), status: response.status };
+  const data = await response.json();
+  return { data: Array.isArray(data) ? data : [], status: response.status };
 }
 
 export async function setCurrentSaison(saison: string, token: string): Promise<ApiResponse<void>> {
