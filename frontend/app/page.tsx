@@ -141,7 +141,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Matchs totaux</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total_matches}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total_matches || 0}</p>
                 </div>
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Salles occupées</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {Object.keys(stats.matches_by_salle).length}
+                    {stats.matches_by_salle ? Object.keys(stats.matches_by_salle).length : 0}
                   </p>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Jours avec matchs</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {Object.keys(stats.matches_by_day).length}
+                    {stats.matches_by_day ? Object.keys(stats.matches_by_day).length : 0}
                   </p>
                 </div>
               </div>

@@ -184,10 +184,28 @@ export async function getTeams(): Promise<ApiResponse<Team[]>> {
 // ==================== SALLES ====================
 
 export async function getSalles(): Promise<ApiResponse<string[]>> {
-  const response = await fetch(getApiUrl('/api/salles'));
+  // Le backend n'a pas d'endpoint /api/salles, on utilise /api/matches pour extraire les salles
+  const response = await fetch(getApiUrl('/api/matches', { limit: 500 }));
   if (!response.ok) return { error: 'Erreur', status: response.status };
-  const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  
+  try {
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      // Extraire les salles uniques depuis les matchs
+      const salles: string[] = [];
+      const seen = new Set<string>();
+      data.forEach((match: any) => {
+        if (match.salle && typeof match.salle === 'string' && !seen.has(match.salle)) {
+          seen.add(match.salle);
+          salles.push(match.salle);
+        }
+      });
+      return { data: salles, status: response.status };
+    }
+    return { data: [], status: response.status };
+  } catch (err) {
+    return { error: 'Erreur de parsing', status: response.status };
+  }
 }
 
 // ==================== INDISPONIBILITES ====================
