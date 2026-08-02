@@ -75,7 +75,18 @@ export async function getSaisons(): Promise<ApiResponse<Saison[]>> {
   const response = await fetch(getApiUrl('/api/saisons'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  
+  // Le backend retourne {saisons: string[], current: string}
+  // Transformer en Saison[] avec active: boolean
+  if (data && data.saisons && Array.isArray(data.saisons)) {
+    const saisons: Saison[] = data.saisons.map((nom: string) => ({
+      nom,
+      active: nom === data.current
+    }));
+    return { data: saisons, status: response.status };
+  }
+  
+  return { data: [], status: response.status };
 }
 
 export async function setCurrentSaison(saison: string, token: string): Promise<ApiResponse<void>> {
@@ -215,17 +226,27 @@ export async function deleteIndispo(indispoId: number, token: string): Promise<A
 
 // ==================== IMPORT/EXPORT ====================
 
-export async function importMatches(file: File, token: string): Promise<ApiResponse<{ message: string }>> {
+export interface ImportResult {
+  status: string;
+  filename: string;
+  created: number;
+  updated: number;
+  skipped: number;
+  message: string;
+}
+
+export async function importMatches(file: File, token: string): Promise<ApiResponse<ImportResult>> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('token', token);
   const response = await fetch(getApiUrl('/api/import'), {
     method: 'POST',
     body: formData,
+    // Ne pas définir Content-Type header - le navigateur le fait automatiquement pour FormData
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Erreur lors de l\'import' }));
-    return { error: error.detail || 'Erreur lors de l\'import', status: response.status };
+    return { error: error.detail || error.message || 'Erreur lors de l\'import', status: response.status };
   }
   return { data: await response.json(), status: response.status };
 }

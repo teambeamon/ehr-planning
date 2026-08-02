@@ -78,10 +78,19 @@ export default function AdminPage() {
 
   const fetchSaisons = async () => {
     const res = await getSaisons();
+    if (res.error) {
+      setError(`Erreur lors du chargement des saisons: ${res.error}`);
+      return;
+    }
     if (res.data) {
       setSaisons(res.data);
       const active = res.data.find(s => s.active);
-      if (active) setCurrentSaisonState(active.nom);
+      if (active) {
+        setCurrentSaisonState(active.nom);
+      } else if (res.data.length > 0) {
+        // Si aucune saison n'est marquée comme active, prendre la première
+        setCurrentSaisonState(res.data[0].nom);
+      }
     }
   };
 
@@ -130,13 +139,28 @@ export default function AdminPage() {
   };
 
   const handleSetSaison = async () => {
-    if (!token || !currentSaison) return;
+    if (!token) {
+      setError('Veuillez vous connecter');
+      return;
+    }
+    if (!currentSaison) {
+      setError('Veuillez sélectionner une saison');
+      return;
+    }
+    
+    // Vérifier le format de la saison (AAAA-AAAA)
+    if (!/^\d{4}-\d{4}$/.test(currentSaison)) {
+      setError('Format de saison invalide. Utilisez AAAA-AAAA (ex: 2026-2027)');
+      return;
+    }
+    
     setLoading(true);
+    setError(null);
     const res = await setCurrentSaison(currentSaison, token);
     if (res.error) {
       setError(res.error);
     } else {
-      setSuccess(`Saison ${currentSaison} activée !`);
+      setSuccess(`Saison ${currentSaison} activée avec succès !`);
       fetchSaisons();
       setTimeout(() => setSuccess(null), 3000);
     }
@@ -145,19 +169,35 @@ export default function AdminPage() {
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !token) return;
+    if (!file || !token) {
+      setError('Veuillez sélectionner un fichier et vous connecter');
+      return;
+    }
+    
+    // Vérifier l'extension du fichier
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      setError('Veuillez sélectionner un fichier Excel (.xlsx ou .xls)');
+      return;
+    }
     
     setLoading(true);
     setError(null);
     
-    const res = await importMatches(file, token);
-    if (res.error) {
-      setError(res.error);
-    } else {
-      setSuccess('Import réussi !');
-      fetchMatches();
-      setFile(null);
-      setTimeout(() => setSuccess(null), 3000);
+    try {
+      const res = await importMatches(file, token);
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setSuccess(`Import réussi ! ${res.data?.created || 0} matchs créés, ${res.data?.updated || 0} mis à jour`);
+        fetchMatches();
+        setFile(null);
+        setTimeout(() => setSuccess(null), 5000);
+      }
+    } catch (err) {
+      console.error('Erreur lors de l\'import:', err);
+      setError('Erreur réseau lors de l\'import');
     }
     setLoading(false);
   };
