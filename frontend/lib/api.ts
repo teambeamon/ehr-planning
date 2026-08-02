@@ -29,7 +29,7 @@ export interface ApiResponse<T> {
 
 // ==================== AUTHENTIFICATION ====================
 
-export async function login(username: string, password: string): Promise<ApiResponse<{token: string; user: any}>> {
+export async function login(username: string, password: string): Promise<ApiResponse<User>> {
   const response = await fetch(getApiUrl('/api/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
