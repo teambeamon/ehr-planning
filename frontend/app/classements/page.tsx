@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { getMatches, getTeams } from '@/lib/api';
+import { getMatches, getTeams, formatDateForDisplay } from '@/lib/api';
 import { Match, Team } from '@/lib/types';
 
 export default function ClassementsPage() {

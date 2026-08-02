@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, getAppInfo } from '@/lib/api';
+import { login, getMe, getSaisons, setCurrentSaison, getMatches, importMatches, getAppInfo, formatDateForDisplay } from '@/lib/api';
 import { User, Saison, Match } from '@/lib/types';
 
 export default function AdminPage() {
@@ -17,6 +17,9 @@ export default function AdminPage() {
   const [token, setToken] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<{name: string; size: number; type: string; rows?: any[]} | null>(null);
+  const [importProgress, setImportProgress] = useState<number>(0);
+  const [isPreviewing, setIsPreviewing] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -167,6 +170,60 @@ export default function AdminPage() {
     setLoading(false);
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) {
+      setFile(null);
+      setFilePreview(null);
+      return;
+    }
+    
+    // Vérifier l'extension du fichier
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileExtension = selectedFile.name.slice(selectedFile.name.lastIndexOf('.')).toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      setError('Veuillez sélectionner un fichier Excel (.xlsx ou .xls)');
+      setFile(null);
+      setFilePreview(null);
+      return;
+    }
+    
+    setFile(selectedFile);
+    setError(null);
+    
+    // Prévisualisation des métadonnées du fichier
+    setFilePreview({
+      name: selectedFile.name,
+      size: selectedFile.size,
+      type: selectedFile.type,
+      rows: [] // On ne peut pas parser Excel sans bibliothèque
+    });
+  };
+
+  const handlePreviewFile = async () => {
+    if (!file) return;
+    
+    setIsPreviewing(true);
+    setError(null);
+    
+    try {
+      // Sans bibliothèque xlsx, on affiche juste les infos de base
+      setFilePreview(prev => prev ? {
+        ...prev,
+        rows: [
+          { message: 'Prévisualisation non disponible sans bibliothèque Excel' },
+          { message: 'Le fichier sera importé directement' },
+          { message: `Nom: ${file.name}` },
+          { message: `Taille: ${(file.size / 1024 / 1024).toFixed(2)} Mo` }
+        ]
+      } : null);
+    } catch (err) {
+      setError('Impossible de prévisualiser le fichier');
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !token) {
@@ -184,34 +241,50 @@ export default function AdminPage() {
     
     setLoading(true);
     setError(null);
+    setImportProgress(0);
+    
+    // Simuler une progression
+    const progressInterval = setInterval(() => {
+      setImportProgress(prev => {
+        const newProgress = prev + Math.random() * 15;
+        return newProgress >= 90 ? 90 : newProgress;
+      });
+    }, 300);
     
     try {
       const res = await importMatches(file, token);
+      clearInterval(progressInterval);
+      
       if (res.error) {
         setError(res.error);
+        setImportProgress(0);
       } else {
-        setSuccess(`Import réussi ! ${res.data?.created || 0} matchs créés, ${res.data?.updated || 0} mis à jour`);
-        fetchMatches();
-        setFile(null);
+        setImportProgress(100);
+        setSuccess(`Import réussi ! ${res.data?.created || 0} matchs créés, ${res.data?.updated || 0} mis à jour, ${res.data?.skipped || 0} ignorés`);
+        
+        // Réinitialiser après un délai
+        setTimeout(() => {
+          setImportProgress(0);
+          setFile(null);
+          setFilePreview(null);
+          fetchMatches();
+        }, 2000);
+        
         setTimeout(() => setSuccess(null), 5000);
       }
     } catch (err) {
+      clearInterval(progressInterval);
       console.error('Erreur lors de l\'import:', err);
       setError('Erreur réseau lors de l\'import');
+      setImportProgress(0);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return '';
-    const date = new Date(dateString.replace(' ', 'T'));
-    return date.toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    if (!dateString) return 'Date invalide';
+    return formatDateForDisplay(dateString);
   };
 
   if (!user) {
@@ -456,9 +529,70 @@ export default function AdminPage() {
 
         {/* Derniers matchs importés */}
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Derniers matchs ({matches.length})
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Derniers matchs ({matches.length})
+            </h2>
+            {matches.length > 0 && (
+              <button
+                onClick={() => fetchMatches()}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" />
+                </svg>
+                Rafraîchir
+              </button>
+            )}
+          </div>
+          
+          {/* Résumé des dates */}
+          {matches.length > 0 && (
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Résumé des dates
+              </h3>
+              <div className="text-sm">
+                {(() => {
+                  const validMatches = matches.filter(m => m.date);
+                  if (validMatches.length === 0) return <p>Aucune date valide</p>;
+                  
+                  const dates = validMatches.map(m => m.date || '');
+                  // Filtrer les dates valides et uniques
+                  const uniqueDates: string[] = [];
+                  const seen = new Set<string>();
+                  dates.forEach(d => {
+                    if (d && !seen.has(d)) {
+                      seen.add(d);
+                      uniqueDates.push(d);
+                    }
+                  });
+                  uniqueDates.sort();
+                  
+                  if (uniqueDates.length === 0) {
+                    return <p>Aucune date valide</p>;
+                  }
+                  
+                  // Trouver min et max dates
+                  let minDate = new Date(uniqueDates[0]);
+                  let maxDate = new Date(uniqueDates[0]);
+                  uniqueDates.forEach(d => {
+                    const date = new Date(d);
+                    if (date.getTime() < minDate.getTime()) minDate = date;
+                    if (date.getTime() > maxDate.getTime()) maxDate = date;
+                  });
+                  
+                  return (
+                    <div className="space-y-1">
+                      <p><strong>Période :</strong> {formatDateForDisplay(minDate.toISOString().split('T')[0])} → {formatDateForDisplay(maxDate.toISOString().split('T')[0])}</p>
+                      <p><strong>Nombre de dates uniques :</strong> {uniqueDates.length}</p>
+                      <p><strong>Total matchs :</strong> {validMatches.length}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
 
           {matches.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-4">
@@ -477,7 +611,8 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {matches
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .filter(m => m.date) // Filtrer les matchs sans date
+                    .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
                     .slice(0, 10)
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">

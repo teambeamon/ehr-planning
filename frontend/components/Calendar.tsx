@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Match } from '@/lib/types';
-import { getMatches } from '@/lib/api';
-import { parseApiDate } from '@/lib/api';
+import { getMatches, parseApiDate } from '@/lib/api';
 
 // Charge FullCalendar dynamiquement pour éviter les erreurs SSR
 const FullCalendar = dynamic(
@@ -59,17 +58,24 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
   };
 
   // Convertir les matchs en events FullCalendar
-  const events = matches.map(match => ({
-    id: match.id.toString(),
-    title: `${match.equipo1} vs ${match.equipo2}`,
-    start: parseApiDate(match.date),
-    end: new Date(parseApiDate(match.date).getTime() + 2 * 60 * 60 * 1000), // +2h par défaut
-    extendedProps: {
-      salle: match.salle,
-      journee: match.journee,
-      saison: match.saison,
-    },
-  }));
+  const events = matches
+    .filter(match => match.date) // Filtrer les matchs sans date
+    .map(match => {
+      const startDate = parseApiDate(match.date);
+      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2h par défaut
+      
+      return {
+        id: match.id.toString(),
+        title: `${match.equipo1} vs ${match.equipo2}`,
+        start: startDate,
+        end: endDate,
+        extendedProps: {
+          salle: match.salle,
+          journee: match.journee,
+          saison: match.saison,
+        },
+      };
+    });
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4">

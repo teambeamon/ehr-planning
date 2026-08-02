@@ -291,6 +291,30 @@ export function formatDateForApi(date: Date): string {
 }
 
 export function parseApiDate(dateString: string | undefined | null): Date {
-  if (!dateString) return new Date();
-  return new Date(dateString.replace(' ', 'T'));
+  if (!dateString) {
+    // Retourner une date invalide qui sera gérée par le frontend
+    return new Date('1970-01-01T00:00:00');
+  }
+  try {
+    return new Date(dateString.replace(' ', 'T'));
+  } catch {
+    return new Date('1970-01-01T00:00:00');
+  }
+}
+
+export function formatDateForDisplay(dateString: string | undefined | null): string {
+  if (!dateString) return 'Date invalide';
+  try {
+    const date = new Date(dateString.replace(' ', 'T'));
+    if (isNaN(date.getTime())) return 'Date invalide';
+    return date.toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return 'Date invalide';
+  }
 }

@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { getMatches, getTeams, deleteMatch } from '@/lib/api';
+import { getMatches, getTeams, deleteMatch, parseApiDate, formatDateForDisplay } from '@/lib/api';
 import { Match, Team } from '@/lib/types';
-import { parseApiDate } from '@/lib/api';
 import Link from 'next/link';
 
 export default function MatchesPage() {
@@ -105,16 +104,8 @@ export default function MatchesPage() {
   };
 
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return '';
-    const date = parseApiDate(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    if (!dateString) return 'Date invalide';
+    return formatDateForDisplay(dateString);
   };
 
   const filteredMatches = matches.filter((match) => {
