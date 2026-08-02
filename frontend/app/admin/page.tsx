@@ -39,12 +39,20 @@ export default function AdminPage() {
     const storedUser = localStorage.getItem('ehr_user');
     
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      
-      // Vérifier que le token est valide
-      const res = await getMe(storedToken);
-      if (!res.data) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        
+        // Vérifier que le token est valide
+        const res = await getMe(storedToken);
+        if (!res.data) {
+          localStorage.removeItem('ehr_token');
+          localStorage.removeItem('ehr_user');
+          setUser(null);
+          setToken('');
+        }
+      } catch (error) {
+        console.error('Erreur de parsing des données utilisateur:', error);
         localStorage.removeItem('ehr_token');
         localStorage.removeItem('ehr_user');
         setUser(null);

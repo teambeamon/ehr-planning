@@ -39,7 +39,8 @@ export async function login(username: string, password: string): Promise<ApiResp
     const error = await response.json().catch(() => ({ detail: 'Erreur de connexion' }));
     return { error: error.detail, status: response.status };
   }
-  return { data: await response.json(), status: response.status };
+  const data = await response.json().catch(() => null);
+  return { data, status: response.status };
 }
 
 export async function logout(token: string): Promise<ApiResponse<void>> {
@@ -61,7 +62,8 @@ export async function getMe(token: string): Promise<ApiResponse<any>> {
     const error = await response.json().catch(() => ({ detail: 'Token invalide' }));
     return { error: error.detail, status: response.status };
   }
-  return { data: await response.json(), status: response.status };
+  const data = await response.json().catch(() => null);
+  return { data, status: response.status };
 }
 
 // ==================== SAISONS ====================
