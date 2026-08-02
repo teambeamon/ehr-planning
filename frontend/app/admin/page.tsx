@@ -98,10 +98,12 @@ export default function AdminPage() {
     }
     
     if (res.data) {
-      setUser(res.data.user);
+      // Le backend retourne {token: string, username: string, role: string}
+      // pas {user: {...}, token: string}
+      setUser(res.data);
       setToken(res.data.token);
       localStorage.setItem('ehr_token', res.data.token);
-      localStorage.setItem('ehr_user', JSON.stringify(res.data.user));
+      localStorage.setItem('ehr_user', JSON.stringify(res.data));
       setSuccess('Connecté avec succès !');
       setTimeout(() => setSuccess(null), 3000);
     }

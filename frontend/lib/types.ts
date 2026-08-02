@@ -1,7 +1,7 @@
 // Types pour les données de l'API EHR Planning
 
 export interface User {
-  id: number;
+  id?: number;
   username: string;
   role: 'admin' | 'user';
   token?: string;
