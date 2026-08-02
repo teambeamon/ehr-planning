@@ -101,7 +101,8 @@ export default function HomePage() {
     return team?.couleur || '#6b7280';
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '';
     const date = parseApiDate(dateString);
     return date.toLocaleDateString('fr-FR', {
       weekday: 'short',

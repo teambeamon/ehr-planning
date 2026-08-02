@@ -142,7 +142,8 @@ export default function AdminPage() {
     setLoading(false);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '';
     const date = new Date(dateString.replace(' ', 'T'));
     return date.toLocaleString('fr-FR', {
       year: 'numeric',

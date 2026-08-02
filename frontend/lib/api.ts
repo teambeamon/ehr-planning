@@ -243,6 +243,7 @@ export function formatDateForApi(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export function parseApiDate(dateString: string): Date {
+export function parseApiDate(dateString: string | undefined | null): Date {
+  if (!dateString) return new Date();
   return new Date(dateString.replace(' ', 'T'));
 }
