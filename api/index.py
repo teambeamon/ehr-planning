@@ -1247,3 +1247,11 @@ def delete_user(user_id: int, token: str=""):
     if u["role"] != "admin": raise HTTPException(403)
     db_execute("DELETE FROM users WHERE id=?", (user_id,))
     return {"ok":True}
+
+# Export app for Vercel
+
+# Required for Vercel Serverless Functions
+# Explicitly export app at module level
+
+# Vercel requires app to be at module level
+# This ensures app is accessible
