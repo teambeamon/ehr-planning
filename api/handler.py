@@ -1,8 +1,10 @@
 """
 Handler for Vercel Serverless Functions
-Exports the FastAPI app from index.py
+Main entry point for Vercel Serverless Functions
 """
 from .index import app
 
-# Explicit export for Vercel Serverless Functions
+# Vercel Serverless Functions requires the app to be exported at module level
+# This makes the FastAPI app accessible to Vercel's runtime
 app = app
+
