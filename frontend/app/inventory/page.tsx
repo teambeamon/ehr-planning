@@ -154,6 +154,7 @@ export default function InventoryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); if (!token) { setError('Connectez-vous'); return; }
+    if (!formData.name || !formData.name.trim()) { setError('Le nom est obligatoire'); return; }
     setLoading(true); setError(null);
     try {
       if (editingItem) {
@@ -232,136 +233,167 @@ export default function InventoryPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Inventaire Matériel</h1>
-            <p className="text-gray-600 dark:text-gray-400">Gestion complète du matériel du club</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Inventaire Matériel</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">Gestion complète du matériel du club</p>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowReport('summary')} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition flex items-center">Rapports <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
-            <button onClick={() => openModal()} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition flex items-center">Ajouter <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
-            <button onClick={handleLogout} className="px-4 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30 text-red-700 dark:text-red-400 rounded-lg transition text-sm font-medium">Déconnexion</button>
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={() => setShowReport('summary')} className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition flex items-center">Rapports <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
+            <button onClick={() => openModal()} className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition flex items-center">Ajouter <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
+            <button onClick={handleLogout} className="px-3 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30 text-red-700 dark:text-red-400 rounded-lg transition text-sm font-medium">Déconnexion</button>
           </div>
         </div>
 
-        {error && <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">{error}</div>}
-        {success && <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6">{success}</div>}
-        {loading && !showReport && <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-lg mb-6 flex items-center"><div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>Chargement...</div>}
+        {error && <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">{error}</div>}
+        {success && <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-4 text-sm">{success}</div>}
+        {loading && !showReport && <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-lg mb-4 flex items-center text-sm"><div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>Chargement...</div>}
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tableau de bord</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{totalItems}</div><div className="text-sm opacity-90">Articles</div></div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{totalQuantity}</div><div className="text-sm opacity-90">Quantité</div></div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{formatCurrency(totalValue)}</div><div className="text-sm opacity-90">Valeur</div></div>
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{itemsToReplace}</div><div className="text-sm opacity-90">À remplacer</div></div>
-            <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 dark:from-cyan-700 dark:to-cyan-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{itemsWithWarranty}</div><div className="text-sm opacity-90">Sous garantie</div></div>
-            <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 rounded-lg p-4 text-white"><div className="text-2xl font-bold">{categories.length}</div><div className="text-sm opacity-90">Catégories</div></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{totalItems}</div>
+              <div className="text-xs md:text-sm opacity-90">Articles</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{totalQuantity}</div>
+              <div className="text-xs md:text-sm opacity-90">Quantité</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{formatCurrency(totalValue)}</div>
+              <div className="text-xs md:text-sm opacity-90">Valeur</div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{itemsToReplace}</div>
+              <div className="text-xs md:text-sm opacity-90">À remplacer</div>
+            </div>
+            <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 dark:from-cyan-700 dark:to-cyan-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{itemsWithWarranty}</div>
+              <div className="text-xs md:text-sm opacity-90">Sous garantie</div>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-700 dark:to-indigo-800 rounded-lg p-3 md:p-4 text-white text-center">
+              <div className="text-xl md:text-2xl font-bold">{categories.length}</div>
+              <div className="text-xs md:text-sm opacity-90">Catégories</div>
+            </div>
           </div>
         </div>
 
-        {showReport && <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
+        {showReport && <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
+          <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {showReport === 'summary' ? 'Résumé global' : showReport === 'by_team' ? 'Par équipe' : showReport === 'by_category' ? 'Par catégorie' : showReport === 'by_year' ? 'Par année' : showReport === 'by_condition' ? 'Par condition' : showReport === 'to_replace' ? 'À remplacer' : 'Garanties expirant'}
             </h2>
             <button onClick={() => setShowReport(null)} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
           </div>
           {reportLoading ? <div className="flex justify-center py-8"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div></div> : <>
-            {showReport === 'summary' && reportData && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Articles</h3><p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{reportData.totalItems}</p></div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Quantité</h3><p className="text-3xl font-bold text-green-600 dark:text-green-400">{reportData.totalQuantity}</p></div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Valeur</h3><p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{formatCurrency(reportData.totalValue)}</p></div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Coût moyen</h3><p className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{formatCurrency(reportData.avgCost)}</p></div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">À remplacer</h3><p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{reportData.itemsToReplace}</p></div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Sous garantie</h3><p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{reportData.itemsWithWarranty}</p></div>
+            {showReport === 'summary' && reportData && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Articles</h3><p className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">{reportData.totalItems}</p></div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Quantité</h3><p className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">{reportData.totalQuantity}</p></div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Valeur</h3><p className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400">{formatCurrency(reportData.totalValue)}</p></div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Coût moyen</h3><p className="text-2xl md:text-3xl font-bold text-cyan-600 dark:text-cyan-400">{formatCurrency(reportData.avgCost)}</p></div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">À remplacer</h3><p className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{reportData.itemsToReplace}</p></div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center"><h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Sous garantie</h3><p className="text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400">{reportData.itemsWithWarranty}</p></div>
             </div>}
             {(showReport === 'by_team' || showReport === 'by_category' || showReport === 'by_year' || showReport === 'by_condition') && reportData && 
-              <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-800"><tr>
-                  {showReport === 'by_team' && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>}
-                  {showReport === 'by_category' && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>}
-                  {showReport === 'by_year' && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Année</th>}
-                  {showReport === 'by_condition' && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>}
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Articles</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Quantité</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th></tr></thead>
+                  {showReport === 'by_team' && <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>}
+                  {showReport === 'by_category' && <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>}
+                  {showReport === 'by_year' && <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Année</th>}
+                  {showReport === 'by_condition' && <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>}
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Articles</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Quantité</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th></tr></thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {reportData.map((row: any, i: number) => <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">{row.team || row.category || row.year || row.condition}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{row.items || 0}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{row.quantity || 0}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right font-medium text-gray-900 dark:text-gray-100">{formatCurrency(row.value || 0)}</td></tr>)}
+                    <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">{row.team || row.category || row.year || row.condition}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{row.items || 0}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{row.quantity || 0}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right font-medium text-gray-900 dark:text-gray-100">{formatCurrency(row.value || 0)}</td></tr>)}
                 </tbody></table></div>}
             {(showReport === 'to_replace' || showReport === 'warranty_expiring') && reportData && 
-              <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-800"><tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Article</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th></tr></thead>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Article</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th></tr></thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {reportData.map((item: InventoryItem) => {
                     const itemValue = (item.cost || 0) * (item.quantity || 0);
                     return <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3 whitespace-nowrap"><div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>{item.serial_number && <div className="text-xs text-gray-500 dark:text-gray-400">N°: {item.serial_number}</div>}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.team_owner || '-'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>{getConditionLabel(item.item_condition || '')}</span></td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right font-medium text-gray-900 dark:text-gray-100">{formatCurrency(itemValue)}</td></tr>;
+                      <td className="px-3 py-2 whitespace-nowrap"><div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>{item.serial_number && <div className="text-xs text-gray-500 dark:text-gray-400">N°: {item.serial_number}</div>}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.team_owner || '-'}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>{getConditionLabel(item.item_condition || '')}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap text-right font-medium text-gray-900 dark:text-gray-100">{formatCurrency(itemValue)}</td></tr>;
                   })}
                 </tbody></table></div>}
           </>}
         </div>}
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Filtres</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="tout">Toutes</option>{categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}</select>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="tout">Toutes</option>{categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}
+              </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
-              <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="tout">Toutes</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}</select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
+              <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="tout">Toutes</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
-              <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="tout">Toutes</option>{years.map(y => <option key={y} value={y}>{y}</option>)}</select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
+              <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="tout">Toutes</option>{years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
-              <select value={selectedCondition} onChange={(e) => setSelectedCondition(e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                {conditions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
+              <select value={selectedCondition} onChange={(e) => setSelectedCondition(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {conditions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
-              <select value={supplierFilter} onChange={(e) => setSupplierFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Tous</option>{suppliers.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
+              <select value={supplierFilter} onChange={(e) => setSupplierFilter(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tous</option>{suppliers.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rechercher</label>
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Nom, N° série..." className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/></div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rechercher</label>
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Nom, N° série..." className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            </div>
           </div>
-          <div className="mt-4"><button onClick={() => { setSelectedCategory('tout'); setSelectedTeam('tout'); setSelectedYear('tout'); setSelectedCondition('tout'); setSearchQuery(''); setSupplierFilter(''); }} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition text-sm">Effacer filtres</button></div>
+          <div className="mt-3"><button onClick={() => { setSelectedCategory('tout'); setSelectedTeam('tout'); setSelectedYear('tout'); setSelectedCondition('tout'); setSearchQuery(''); setSupplierFilter(''); }} className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition text-sm">Effacer filtres</button></div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Par catégorie</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {categories.map(c => {
               const label = INVENTORY_CATEGORY_LABELS[c] || c;
               const color = INVENTORY_CATEGORY_COLORS[c] || '#6366f1';
               const t = catTotals[c];
-              return <div key={c} onClick={() => setSelectedCategory(c)} className={`p-4 rounded-lg transition cursor-pointer ${selectedCategory === c ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`} style={{backgroundColor: `${color}20`}}>
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">{label}</div>
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{t?.quantity || 0}</div>
+              return <div key={c} onClick={() => setSelectedCategory(c)} className={`p-3 rounded-lg transition cursor-pointer text-center ${selectedCategory === c ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`} style={{backgroundColor: `${color}20`}}>
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs md:text-sm truncate">{label}</div>
+                <div className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{t?.quantity || 0}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{t?.count || 0} art.</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{formatCurrency(t?.value || 0)}</div>
               </div>;
             })}
-            <div onClick={() => setSelectedCategory('tout')} className={`p-4 rounded-lg transition cursor-pointer flex items-center justify-center ${selectedCategory === 'tout' ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-              <div className="text-center"><div className="font-medium text-gray-900 dark:text-gray-100 text-sm">Total</div>
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{totalQuantity}</div>
+            <div onClick={() => setSelectedCategory('tout')} className={`p-3 rounded-lg transition cursor-pointer flex items-center justify-center ${selectedCategory === 'tout' ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+              <div className="text-center">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs md:text-sm">Total</div>
+                <div className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{totalQuantity}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{totalItems} art.</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{formatCurrency(totalValue)}</div>
               </div>
@@ -369,10 +401,13 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Liste ({inventory.length} articles)</h2>
-            <button onClick={() => fetchInventory()} className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"/></svg>Rafraîchir</button>
+            <button onClick={() => fetchInventory()} className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"/></svg>
+              Rafraîchir
+            </button>
           </div>
           {inventory.length === 0 ? <div className="text-center py-12"><svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><p className="text-gray-500 dark:text-gray-400">Aucun article</p></div> :
             <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -390,80 +425,121 @@ export default function InventoryPage() {
                   const lowStock = (item.quantity || 0) <= 2; const color = INVENTORY_CATEGORY_COLORS[item.category as InventoryCategory] || '#6366f1';
                   const itemValue = (item.cost || 0) * (item.quantity || 0);
                   return <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-4 py-3 whitespace-nowrap"><div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>{item.serial_number && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">N°: {item.serial_number}</div>}{item.supplier && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{item.supplier}</div>}{item.purchase_year && <div className="text-xs text-gray-500 dark:text-gray-400">{item.purchase_year}</div>}</td>
-                    <td className="px-4 py-3 whitespace-nowrap"><span className="px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${color}20`, color}}>{INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}</span></td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.team_owner || '-'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${lowStock ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{item.quantity || 0}</span></td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{formatCurrency(item.cost || 0)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">{formatCurrency(itemValue)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>{getConditionLabel(item.item_condition || '')}</span></td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right"><div className="flex justify-end gap-2">
-                      <button onClick={() => openModal(item)} className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Modifier"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-                      <button onClick={() => handleDelete(item.id, item.name)} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition" title="Supprimer"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    <td className="px-3 py-2 whitespace-nowrap"><div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>{item.serial_number && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">N°: {item.serial_number}</div>}{item.supplier && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">{item.supplier}</div>}{item.purchase_year && <div className="text-xs text-gray-500 dark:text-gray-400">{item.purchase_year}</div>}</td>
+                    <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${color}20`, color}}>{INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}</span></td>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.team_owner || '-'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${lowStock ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{item.quantity || 0}</span></td>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{formatCurrency(item.cost || 0)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">{formatCurrency(itemValue)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>{getConditionLabel(item.item_condition || '')}</span></td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right"><div className="flex justify-end gap-2">
+                      <button onClick={() => openModal(item)} className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Modifier"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                      <button onClick={() => handleDelete(item.id, item.name)} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition" title="Supprimer"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                     </div></td></tr>;
                 })}
               </tbody></table></div>}
         </div>
 
-        {showModal && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-2xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{editingItem ? 'Modifier' : 'Ajouter'} Article</h2>
-              <button onClick={closeModal} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
+        {showModal && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg p-4 md:p-6 overflow-y-auto max-h-[90vh]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">{editingItem ? 'Modifier' : 'Ajouter'} Article</h2>
+              <button onClick={closeModal} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom*</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ballon taille 3" required/></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie*</label>
-                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value as InventoryCategory})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    {categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
-                  <select value={formData.team_owner} onChange={(e) => setFormData({...formData, team_owner: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Non assigné</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ballon taille 3" required/>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition*</label>
-                  <select value={formData.item_condition} onChange={(e) => setFormData({...formData, item_condition: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    {conditions.filter(c => c.value !== 'tout').map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantité*</label>
-                  <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => handleQuantityChange(-1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50" disabled={(formData.quantity || 0) <= 0}><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg></button>
-                    <input type="number" value={formData.quantity || 0} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} min="0" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required/>
-                    <button type="button" onClick={() => handleQuantityChange(1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/></svg></button>
-                  </div></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emplacement</label>
-                  <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Salle Hettange"/></div>
-                <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable</label>
-                  <input type="text" value={formData.responsible} onChange={(e) => setFormData({...formData, responsible: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jean Dupont"/></div>
-              </div>
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700"><h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-4">Détails d'achat</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Coût (€)</label>
-                    <input type="number" value={formData.cost || 0} onChange={(e) => setFormData({...formData, cost: parseFloat(e.target.value) || 0})} step="0.01" min="0" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00"/></div>
-                  <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
-                    <input type="text" value={formData.supplier} onChange={(e) => setFormData({...formData, supplier: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Decathlon"/></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie *</label>
+                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value as InventoryCategory})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    {categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}
+                  </select>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
-                    <input type="number" value={formData.purchase_year || ''} onChange={(e) => setFormData({...formData, purchase_year: parseInt(e.target.value) || undefined})} min="1900" max="2100" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="2024"/></div>
-                  <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date achat</label>
-                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/></div>
-                  <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">N° série</label>
-                    <input type="text" value={formData.serial_number} onChange={(e) => setFormData({...formData, serial_number: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="SN12345"/></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
+                  <select value={formData.team_owner} onChange={(e) => setFormData({...formData, team_owner: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Non assigné</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
                 </div>
-                <div className="mt-4"><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garantie jusqu'au</label>
-                  <input type="date" value={formData.warranty_until} onChange={(e) => setFormData({...formData, warranty_until: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/></div>
-                <div className="mt-4"><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
-                  <input type="text" value={formData.assigned_to} onChange={(e) => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Équipe Senior"/></div>
               </div>
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700"><h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-4">Notes</h3>
-                <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="À remplacer, stock limité..."/></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition *</label>
+                  <select value={formData.item_condition} onChange={(e) => setFormData({...formData, item_condition: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    {conditions.filter(c => c.value !== 'tout').map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantité *</label>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => handleQuantityChange(-1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50" disabled={(formData.quantity || 0) <= 0}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <input type="number" value={formData.quantity || 0} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} min="0" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required/>
+                    <button type="button" onClick={() => handleQuantityChange(1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emplacement</label>
+                  <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Salle Hettange"/>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable</label>
+                  <input type="text" value={formData.responsible} onChange={(e) => setFormData({...formData, responsible: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jean Dupont"/>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Détails d'achat</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Coût (€)</label>
+                    <input type="number" value={formData.cost || 0} onChange={(e) => setFormData({...formData, cost: parseFloat(e.target.value) || 0})} step="0.01" min="0" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
+                    <input type="text" value={formData.supplier} onChange={(e) => setFormData({...formData, supplier: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Decathlon"/>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
+                    <input type="number" value={formData.purchase_year || ''} onChange={(e) => setFormData({...formData, purchase_year: parseInt(e.target.value) || undefined})} min="1900" max="2100" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="2024"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date achat</label>
+                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">N° série</label>
+                    <input type="text" value={formData.serial_number} onChange={(e) => setFormData({...formData, serial_number: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="SN12345"/>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garantie jusqu'au</label>
+                  <input type="date" value={formData.warranty_until} onChange={(e) => setFormData({...formData, warranty_until: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
+                  <input type="text" value={formData.assigned_to} onChange={(e) => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Équipe Senior"/>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Notes</h3>
+                <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="À remplacer, stock limité..."/>
+              </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">Annuler</button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center">
+                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition text-sm">Annuler</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center text-sm">
                   {loading ? <><div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>En cours...</> : 'Enregistrer'}
                 </button>
               </div>
