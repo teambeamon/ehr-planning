@@ -60,13 +60,13 @@ export async function getMe(token: string): Promise<ApiResponse<User>> {
     return { error: error.detail, status: response.status };
   }
   const data = await response.json().catch(() => null);
-  // Le backend retourne {username, role, token} pour /api/me aussi
-  if (data) {
+  // Le backend retourne {username, role} pour /api/me
+  if (data && data.username) {
     // Normaliser pour correspondre au type User
     const userData: User = {
       username: data.username,
-      role: data.role as 'admin' | 'user',
-      token: data.token
+      role: (data.role as 'admin' | 'user') || 'user',
+      token: token  // Utiliser le token passé en paramètre
     };
     return { data: userData, status: response.status };
   }
