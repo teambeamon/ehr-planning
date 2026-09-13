@@ -23,9 +23,45 @@ interface CalendarProps {
 // Salles EHR connues
 const EHR_SALLES = ['Hettange Hall', 'Hettange Poly', 'Rodemack', 'Kanfen'];
 
+// Recalculer home a partir du texte si non defini (securite)
+const computeHomeFromText = (match: Match): number | null => {
+  // Si home est deja defini, on le retourne
+  if (match.home === 0 || match.home === 1) {
+    return match.home;
+  }
+  
+  // Sinon, on recalcule a partir de match_text
+  const text = match.match_text || '';
+  const teamName = match.team_name || '';
+  const fullText = `${teamName} ${text}`;
+  
+  // EHR en premier = domicile (1)
+  if (fullText.startsWith('EHR') || 
+      fullText.includes('EHR -') || 
+      fullText.includes('EHR vs') ||
+      /^EHR[\s\-]/.test(fullText)) {
+    return 1;
+  }
+  
+  // EHR en second = exterieur (0)
+  if (fullText.includes('- EHR') ||
+      fullText.includes('vs EHR') ||
+      /[\s\-]EHR$/.test(fullText) ||
+      /EHR$/.test(fullText)) {
+    return 0;
+  }
+  
+  // Indetermine
+  return null;
+};
+
 // Determiner le type de match
 const getMatchType = (match: Match) => {
-  if (match.home === 1) {
+  // Recalculer home si nécessaire
+  const home = computeHomeFromText(match);
+  
+  if (home === 1) {
+    // Match a domicile
     if (match.salle && EHR_SALLES.includes(match.salle)) {
       return 'domicile-salle';
     } else if (match.salle && match.salle.trim() !== '') {
@@ -33,9 +69,12 @@ const getMatchType = (match: Match) => {
     } else {
       return 'domicile-sans-salle';
     }
-  } else if (match.home === 0) {
+  } else if (home === 0) {
+    // Match a l'exterieur
     return 'exterieur';
   }
+  
+  // Match neutre ou indetermine
   return 'neutre';
 };
 
@@ -113,14 +152,19 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
     }
   };
 
+  // Convertir les matchs en events FullCalendar
   const events = matches
     .filter(match => match.date_iso)
     .map(match => {
       const startDate = parseApiDate(match.date_iso);
-      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2h par defaut
       
+      // Determiner le titre avec icone
       const icon = getMatchIcon(match);
-      const homeIndicator = match.home === 1 ? ' (D)' : match.home === 0 ? ' (E)' : '';
+      
+      // Calculer home si necessaire
+      const home = computeHomeFromText(match);
+      const homeIndicator = home === 1 ? ' (D)' : home === 0 ? ' (E)' : '';
       const salleInfo = match.salle ? ` - ${match.salle}` : '';
       const title = `${icon} ${match.team_name} vs ${match.opponent}${homeIndicator}${salleInfo}`;
       
@@ -135,7 +179,7 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
           journee: match.journee,
           saison: match.saison,
           match_type: match.match_type,
-          home: match.home,
+          home: home,
           team_name: match.team_name,
           opponent: match.opponent
         },
@@ -183,24 +227,25 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
         />
       </div>
       
+      {/* Legende avec les codes couleurs */}
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Legende :</h4>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center">
             <span className="w-4 h-4 rounded mr-2 bg-green-500 border border-green-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">🏠 Domicile (salle EHR)</span>
+            <span className="text-gray-700 dark:text-gray-300">🏠 Domicile (EHR en 1er, salle EHR)</span>
           </div>
           <div className="flex items-center">
             <span className="w-4 h-4 rounded mr-2 bg-blue-500 border border-blue-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">🏟️ Domicile (autre salle)</span>
+            <span className="text-gray-700 dark:text-gray-300">🏟️ Domicile (EHR en 1er, autre salle)</span>
           </div>
           <div className="flex items-center">
             <span className="w-4 h-4 rounded mr-2 bg-orange-500 border border-orange-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">❓ Domicile (salle non prevue)</span>
+            <span className="text-gray-700 dark:text-gray-300">❓ Domicile (EHR en 1er, salle non prevue)</span>
           </div>
           <div className="flex items-center">
             <span className="w-4 h-4 rounded mr-2 bg-red-500 border border-red-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">🚀 Exterior</span>
+            <span className="text-gray-700 dark:text-gray-300">🚀 Exterior (EHR en 2nd)</span>
           </div>
           <div className="flex items-center">
             <span className="w-4 h-4 rounded mr-2 bg-purple-500 border border-purple-500"></span>
