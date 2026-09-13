@@ -195,8 +195,25 @@ export async function getTeams(): Promise<ApiResponse<Team[]>> {
   const response = await fetch(getApiUrl('/api/teams'));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
-  return { data: Array.isArray(data) ? data : [], status: response.status };
+  
+  // Mapper les champs du backend (name, coach) vers le frontend (nom, couleur)
+  if (Array.isArray(data)) {
+    const teams: Team[] = data.map((item: any, index: number) => ({
+      nom: item.name || item.nom || 'Inconnue',
+      couleur: COLORS[index % COLORS.length], // Attribuer une couleur unique
+      coach: item.coach || ''
+    }));
+    return { data: teams, status: response.status };
+  }
+  
+  return { data: [], status: response.status };
 }
+
+// Couleurs pour les équipes
+const COLORS = [
+  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#06b6d4', '#84cc16', '#eab308', '#ec4899', '#6366f1'
+];
 
 // ==================== SALLES ====================
 

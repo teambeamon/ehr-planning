@@ -14,9 +14,10 @@ export interface LoginResponse {
 }
 
 export interface Team {
-  id: number;
+  id?: number;        // Optionnel car le backend /api/teams ne retourne pas d'id
   nom: string;
   couleur: string;
+  coach?: string;     // Optionnel
 }
 
 export interface Match {
