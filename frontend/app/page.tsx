@@ -257,31 +257,31 @@ export default function HomePage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Match</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Salle</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Journée</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Score</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {matches
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .sort((a, b) => new Date(a.date_iso).getTime() - new Date(b.date_iso).getTime())
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {formatDate(match.date)}
+                          {formatDate(match.date_iso)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
                             <span 
                               className="badge-team" 
-                              style={{ backgroundColor: getTeamColor(match.equipo1) }}
+                              style={{ backgroundColor: getTeamColor(match.team_name) }}
                             >
-                              {match.equipo1}
+                              {match.team_name}
                             </span>
                             <span className="text-gray-500 dark:text-gray-400">vs</span>
                             <span 
                               className="badge-team" 
-                              style={{ backgroundColor: getTeamColor(match.equipo2) }}
+                              style={{ backgroundColor: getTeamColor(match.opponent) }}
                             >
-                              {match.equipo2}
+                              {match.opponent}
                             </span>
                           </div>
                         </td>
@@ -292,13 +292,14 @@ export default function HomePage() {
                           {match.journee}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                          {match.score1 !== undefined && match.score2 !== undefined ? (
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">
-                              {match.score1} - {match.score2}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 text-xs">À jouer</span>
-                          )}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            match.match_type === 'champ' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                            match.match_type === 'coupe' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                            match.match_type === 'amical' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                            'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+                          }`}>
+                            {match.match_type}
+                          </span>
                         </td>
                       </tr>
                     ))}

@@ -111,8 +111,8 @@ export default function MatchesPage() {
   const filteredMatches = matches.filter((match) => {
     if (filters.saison && match.saison !== filters.saison) return false;
     if (filters.salle && match.salle !== filters.salle) return false;
-    if (filters.team && !match.equipo1.includes(filters.team) && !match.equipo2.includes(filters.team)) return false;
-    if (filters.journee && match.journee !== parseInt(filters.journee)) return false;
+    if (filters.team && !match.team_name.includes(filters.team) && !match.opponent.includes(filters.team)) return false;
+    if (filters.journee && match.journee !== filters.journee) return false;
     return true;
   });
 
@@ -252,26 +252,26 @@ export default function MatchesPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredMatches
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .sort((a, b) => new Date(a.date_iso).getTime() - new Date(b.date_iso).getTime())
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {formatDate(match.date)}
+                          {formatDate(match.date_iso)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
                             <span 
                               className="badge-team" 
-                              style={{ backgroundColor: getTeamColor(match.equipo1) }}
+                              style={{ backgroundColor: getTeamColor(match.team_name) }}
                             >
-                              {match.equipo1}
+                              {match.team_name}
                             </span>
                             <span className="text-gray-500 dark:text-gray-400">vs</span>
                             <span 
                               className="badge-team" 
-                              style={{ backgroundColor: getTeamColor(match.equipo2) }}
+                              style={{ backgroundColor: getTeamColor(match.opponent) }}
                             >
-                              {match.equipo2}
+                              {match.opponent}
                             </span>
                           </div>
                         </td>
@@ -287,13 +287,14 @@ export default function MatchesPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
-                          {match.score1 !== undefined && match.score2 !== undefined ? (
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">
-                              {match.score1} - {match.score2}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 text-xs">À jouer</span>
-                          )}
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            match.match_type === 'champ' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                            match.match_type === 'coupe' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                            match.match_type === 'amical' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                            'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+                          }`}>
+                            {match.match_type}
+                          </span>
                         </td>
                         {token && (
                           <td className="px-4 py-3 whitespace-nowrap text-center">

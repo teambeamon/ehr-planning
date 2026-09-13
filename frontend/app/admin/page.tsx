@@ -727,10 +727,10 @@ export default function AdminPage() {
               </h3>
               <div className="text-sm">
                 {(() => {
-                  const validMatches = matches.filter(m => m.date);
+                  const validMatches = matches.filter(m => m.date_iso);
                   if (validMatches.length === 0) return <p>Aucune date valide</p>;
                   
-                  const dates = validMatches.map(m => m.date || '');
+                  const dates = validMatches.map(m => m.date_iso || '');
                   // Filtrer les dates valides et uniques
                   const uniqueDates: string[] = [];
                   const seen = new Set<string>();
@@ -784,16 +784,16 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {matches
-                    .filter(m => m.date) // Filtrer les matchs sans date
-                    .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
+                    .filter(m => m.date_iso) // Filtrer les matchs sans date
+                    .sort((a, b) => new Date(b.date_iso || '').getTime() - new Date(a.date_iso || '').getTime())
                     .slice(0, 10)
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {formatDate(match.date)}
+                          {formatDate(match.date_iso)}
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">
-                          <span className="font-medium">{match.equipo1}</span> vs <span className="font-medium">{match.equipo2}</span>
+                          <span className="font-medium">{match.team_name}</span> vs <span className="font-medium">{match.opponent}</span>
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                           {match.salle}

@@ -21,16 +21,27 @@ export interface Team {
 
 export interface Match {
   id: number;
-  date: string; // Format: YYYY-MM-DD HH:MM
-  equipo1: string;
-  equipo2: string;
+  date_str: string;      // Format: JJ/MM/AAAA
+  date_iso: string;      // Format: YYYY-MM-DD
+  team_name: string;     // Nom de l'équipe EHR
+  opponent: string;      // Adversaire
   salle: string;
   saison: string;
-  journee: number;
+  journee: string;       // Ex: "J1", "J2", "Coupe"
+  home: number | null;   // 1 = domicile, 0 = extérieur, null = neutre
+  time_str: string;      // Ex: "15h00"
+  match_text: string;    // Texte complet du match
+  match_type: string;    // champ, coupe, amical, report, exempt
+  note: string;
+  coach: string;
+  manually_edited: boolean;
+  camionnette: string;
+  conducteur: string;
+  heure_depart: string;
+  lieu_rdv: string;
+  // Champs pour les scores (optionnels, gérés côté frontend pour les classements)
   score1?: number | null;
   score2?: number | null;
-  arbitre?: string;
-  delegue?: string;
 }
 
 export interface Saison {

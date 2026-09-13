@@ -68,10 +68,11 @@ export default function ClassementsPage() {
 
     // Parcourir tous les matchs
     matches.forEach(match => {
-      if (match.score1 === undefined || match.score2 === undefined) return;
+      // Si pas de scores, on ne compte pas le match
+      if (match.score1 === undefined || match.score2 === undefined || match.score1 === null || match.score2 === null) return;
 
-      const team1 = match.equipo1;
-      const team2 = match.equipo2;
+      const team1 = match.team_name;
+      const team2 = match.opponent;
 
       // Initialiser si pas encore présent
       if (!stats[team1]) {

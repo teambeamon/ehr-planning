@@ -59,20 +59,25 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
 
   // Convertir les matchs en events FullCalendar
   const events = matches
-    .filter(match => match.date) // Filtrer les matchs sans date
+    .filter(match => match.date_iso) // Filtrer les matchs sans date
     .map(match => {
-      const startDate = parseApiDate(match.date);
+      const startDate = parseApiDate(match.date_iso);
       const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2h par défaut
+      
+      // Déterminer le titre en fonction de home
+      const homeIndicator = match.home === 1 ? ' (D)' : match.home === 0 ? ' (E)' : '';
+      const title = `${match.team_name} vs ${match.opponent}${homeIndicator}`;
       
       return {
         id: match.id.toString(),
-        title: `${match.equipo1} vs ${match.equipo2}`,
+        title: title,
         start: startDate,
         end: endDate,
         extendedProps: {
           salle: match.salle,
           journee: match.journee,
           saison: match.saison,
+          match_type: match.match_type,
         },
       };
     });
