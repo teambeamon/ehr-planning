@@ -5,13 +5,12 @@ import dynamic from 'next/dynamic';
 import { Match } from '@/lib/types';
 import { getMatches, parseApiDate } from '@/lib/api';
 
-// Charge FullCalendar dynamiquement pour éviter les erreurs SSR
+// Charge FullCalendar dynamiquement
 const FullCalendar = dynamic(
   () => import('@fullcalendar/react'),
   { ssr: false }
 );
 
-// Importer les plugins directement (FullCalendar v6+ les supporte en ESM)
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
@@ -20,6 +19,63 @@ interface CalendarProps {
   onDateSelect?: (date: Date) => void;
   onEventClick?: (match: Match) => void;
 }
+
+// Salles EHR connues
+const EHR_SALLES = ['Hettange Hall', 'Hettange Poly', 'Rodemack', 'Kanfen'];
+
+// Determiner le type de match
+const getMatchType = (match: Match) => {
+  if (match.home === 1) {
+    if (match.salle && EHR_SALLES.includes(match.salle)) {
+      return 'domicile-salle';
+    } else if (match.salle && match.salle.trim() !== '') {
+      return 'domicile-autre-salle';
+    } else {
+      return 'domicile-sans-salle';
+    }
+  } else if (match.home === 0) {
+    return 'exterieur';
+  }
+  return 'neutre';
+};
+
+// Classe CSS pour chaque type
+const getEventClassName = (match: Match) => {
+  const type = getMatchType(match);
+  const baseClass = 'fc-event-main cursor-pointer hover:opacity-90 transition-all';
+  
+  switch (type) {
+    case 'domicile-salle':
+      return `${baseClass} bg-green-500 border-green-500`;
+    case 'domicile-autre-salle':
+      return `${baseClass} bg-blue-500 border-blue-500`;
+    case 'domicile-sans-salle':
+      return `${baseClass} bg-orange-500 border-orange-500`;
+    case 'exterieur':
+      return `${baseClass} bg-red-500 border-red-500`;
+    case 'neutre':
+    default:
+      return `${baseClass} bg-purple-500 border-purple-500`;
+  }
+};
+
+// Icone pour chaque type
+const getMatchIcon = (match: Match) => {
+  const type = getMatchType(match);
+  switch (type) {
+    case 'domicile-salle':
+      return '🏠';
+    case 'domicile-autre-salle':
+      return '🏟️';
+    case 'domicile-sans-salle':
+      return '❓';
+    case 'exterieur':
+      return '🚀';
+    case 'neutre':
+    default:
+      return '⚽';
+  }
+};
 
 export default function Calendar({ saison, onDateSelect, onEventClick }: CalendarProps) {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -57,27 +113,31 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
     }
   };
 
-  // Convertir les matchs en events FullCalendar
   const events = matches
-    .filter(match => match.date_iso) // Filtrer les matchs sans date
+    .filter(match => match.date_iso)
     .map(match => {
       const startDate = parseApiDate(match.date_iso);
-      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2h par défaut
+      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
       
-      // Déterminer le titre en fonction de home
+      const icon = getMatchIcon(match);
       const homeIndicator = match.home === 1 ? ' (D)' : match.home === 0 ? ' (E)' : '';
-      const title = `${match.team_name} vs ${match.opponent}${homeIndicator}`;
+      const salleInfo = match.salle ? ` - ${match.salle}` : '';
+      const title = `${icon} ${match.team_name} vs ${match.opponent}${homeIndicator}${salleInfo}`;
       
       return {
         id: match.id.toString(),
         title: title,
         start: startDate,
         end: endDate,
+        className: getEventClassName(match),
         extendedProps: {
           salle: match.salle,
           journee: match.journee,
           saison: match.saison,
           match_type: match.match_type,
+          home: match.home,
+          team_name: match.team_name,
+          opponent: match.opponent
         },
       };
     });
@@ -118,17 +178,35 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
           height={600}
           dayMaxEvents={3}
           moreLinkClassNames="text-blue-600 dark:text-blue-400"
-          eventClassNames="cursor-pointer hover:opacity-90 transition-opacity"
           dayHeaderClassNames="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium py-2"
           dayCellClassNames="border border-gray-200 dark:border-gray-700"
         />
       </div>
       
-      <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        <span className="inline-flex items-center">
-          <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-          Match programmé
-        </span>
+      <div className="mt-4">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Legende :</h4>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center">
+            <span className="w-4 h-4 rounded mr-2 bg-green-500 border border-green-500"></span>
+            <span className="text-gray-700 dark:text-gray-300">🏠 Domicile (salle EHR)</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-4 h-4 rounded mr-2 bg-blue-500 border border-blue-500"></span>
+            <span className="text-gray-700 dark:text-gray-300">🏟️ Domicile (autre salle)</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-4 h-4 rounded mr-2 bg-orange-500 border border-orange-500"></span>
+            <span className="text-gray-700 dark:text-gray-300">❓ Domicile (salle non prevue)</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-4 h-4 rounded mr-2 bg-red-500 border border-red-500"></span>
+            <span className="text-gray-700 dark:text-gray-300">🚀 Exterior</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-4 h-4 rounded mr-2 bg-purple-500 border border-purple-500"></span>
+            <span className="text-gray-700 dark:text-gray-300">⚽ Neutre</span>
+          </div>
+        </div>
       </div>
     </div>
   );
