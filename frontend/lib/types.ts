@@ -1,16 +1,42 @@
 // Types pour les données de l'API EHR Planning
 
+// Rôles possibles pour les utilisateurs
+export type UserRole = 'admin' | 'manager' | 'editor' | 'viewer';
+
 export interface User {
   id?: number;
   username: string;
-  role: 'admin' | 'user';
+  role: UserRole | string; // Permet les rôles du backend qui peuvent être plus larges
   token?: string; // Optional car token peut être géré séparément
+  team_filter?: string; // Filtre par équipe pour les utilisateurs
+}
+
+export interface UserManagement {
+  id: number;
+  username: string;
+  role: UserRole | string;
+  team_filter: string;
 }
 
 export interface LoginResponse {
   token: string;
   username: string;
   role: string;
+}
+
+// Droits par rôle (pour vérification côté frontend)
+export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
+  admin: ['users:read', 'users:write', 'users:delete', 'matches:read', 'matches:write', 'matches:delete', 'inventory:read', 'inventory:write', 'inventory:delete', 'team:read', 'team:write'],
+  manager: ['matches:read', 'matches:write', 'matches:delete', 'inventory:read', 'inventory:write', 'inventory:delete', 'team:read', 'team:write'],
+  editor: ['matches:read', 'matches:write', 'inventory:read', 'inventory:write'],
+  viewer: ['matches:read', 'inventory:read', 'team:read']
+};
+
+// Vérifie si un utilisateur a une permission
+export function hasPermission(user: User | null, permission: string): boolean {
+  if (!user) return false;
+  const permissions = ROLE_PERMISSIONS[user.role as UserRole];
+  return permissions ? permissions.includes(permission) : false;
 }
 
 export interface Team {

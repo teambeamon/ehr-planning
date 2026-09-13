@@ -1,7 +1,7 @@
 // Client API pour communiquer avec le backend FastAPI
 // Configuration pour Vercel: frontend et backend sur la même origine
 
-import { User, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo, TeamCoach, TeamParent, InventoryItem } from './types';
+import { User, UserManagement, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo, TeamCoach, TeamParent, InventoryItem } from './types';
 
 // URL de base pour l'API - configurée via variables d'environnement
 const getBaseUrl = (): string => {
@@ -609,4 +609,92 @@ export function formatDateForDisplay(dateString: string | undefined | null): str
   } catch {
     return 'Date invalide';
   }
+}
+
+// ==================== USER MANAGEMENT ====================
+
+export async function getUsers(token: string): Promise<ApiResponse<UserManagement[]>> {
+  const response = await fetch(getApiUrl('/api/users', { token }));
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  const data = await response.json().catch(() => []);
+  return { data: Array.isArray(data) ? data : [], status: response.status };
+}
+
+export interface CreateUserParams {
+  username: string;
+  password: string;
+  role: string;
+  team_filter?: string;
+}
+
+export async function createUser(userData: CreateUserParams, token: string): Promise<ApiResponse<{ ok: boolean; id?: number; username?: string; role?: string }>> {
+  const formData = new URLSearchParams();
+  formData.append('username', userData.username);
+  formData.append('password', userData.password);
+  formData.append('role', userData.role);
+  if (userData.team_filter) formData.append('team_filter', userData.team_filter);
+  formData.append('token', token);
+  
+  const response = await fetch(getApiUrl('/api/users'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export interface UpdateUserParams {
+  username?: string;
+  password?: string;
+  role?: string;
+  team_filter?: string;
+}
+
+export async function updateUser(userId: number, userData: UpdateUserParams, token: string): Promise<ApiResponse<{ ok: boolean }>> {
+  const formData = new URLSearchParams();
+  if (userData.username !== undefined) formData.append('username', userData.username);
+  if (userData.password !== undefined) formData.append('password', userData.password);
+  if (userData.role !== undefined) formData.append('role', userData.role);
+  if (userData.team_filter !== undefined) formData.append('team_filter', userData.team_filter);
+  formData.append('token', token);
+  
+  const response = await fetch(getApiUrl(`/api/users/${userId}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function deleteUser(userId: number, token: string): Promise<ApiResponse<void>> {
+  const response = await fetch(getApiUrl(`/api/users/${userId}`), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `token=${token}`,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { status: response.status };
+}
+
+export async function getUserById(userId: number, token: string): Promise<ApiResponse<UserManagement>> {
+  const response = await fetch(getApiUrl(`/api/users/${userId}`, { token }));
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
 }

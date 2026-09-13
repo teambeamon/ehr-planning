@@ -1502,6 +1502,112 @@ def delete_inventory_item(item_id: int, token: str=""):
     return {"ok": True}
 
 
+# ── User Management ────────────────────────────────────────────────────────────
+
+@app.get("/api/users")
+def list_users(token: str=""):
+    """Liste tous les utilisateurs. Réservé aux admins."""
+    user = _auth(token)
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Réservé aux administrateurs")
+    return db_fetchall("SELECT id, username, role, team_filter FROM users ORDER BY username")
+
+
+@app.post("/api/users")
+def create_user(
+    username: str=Form(...),
+    password: str=Form(...),
+    role: str=Form("viewer"),
+    team_filter: str=Form(""),
+    token: str=Form(...)
+):
+    """Crée un nouvel utilisateur. Réservé aux admins."""
+    user = _auth(token)
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Réservé aux administrateurs")
+    
+    if role not in ["admin", "manager", "editor", "viewer"]:
+        raise HTTPException(400, f"Rôle invalide. Doit être parmi: admin, manager, editor, viewer")
+    
+    existing = db_fetchone("SELECT id FROM users WHERE username=?", (username,))
+    if existing:
+        raise HTTPException(400, "Nom d'utilisateur déjà utilisé")
+    
+    hashed = _hash(password)
+    new_id = db_execute(
+        "INSERT INTO users (username, hashed_password, role, team_filter) VALUES (?,?,?,?)",
+        (username, hashed, role, team_filter)
+    )
+    return {"ok": True, "id": new_id, "username": username, "role": role}
+
+
+@app.put("/api/users/{user_id}")
+def update_user(
+    user_id: int,
+    username: str=Form(""),
+    password: str=Form(""),
+    role: str=Form(""),
+    team_filter: str=Form(""),
+    token: str=Form(...)
+):
+    """Met à jour un utilisateur. Réservé aux admins."""
+    user = _auth(token)
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Réservé aux administrateurs")
+    
+    sets, params = [], []
+    if username:
+        # Vérifier que le nouveau username n'est pas déjà pris
+        existing = db_fetchone("SELECT id FROM users WHERE username=? AND id!=?", (username, user_id))
+        if existing:
+            raise HTTPException(400, "Nom d'utilisateur déjà utilisé")
+        sets.append("username=?"); params.append(username)
+    if password:
+        sets.append("hashed_password=?"); params.append(_hash(password))
+    if role:
+        if role not in ["admin", "manager", "editor", "viewer"]:
+            raise HTTPException(400, f"Rôle invalide. Doit être parmi: admin, manager, editor, viewer")
+        sets.append("role=?"); params.append(role)
+    if team_filter is not None:
+        sets.append("team_filter=?"); params.append(team_filter)
+    
+    if sets:
+        params.append(user_id)
+        db_execute(f"UPDATE users SET {', '.join(sets)} WHERE id=?", tuple(params))
+    
+    return {"ok": True}
+
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: int, token: str=Form(...)):
+    """Supprime un utilisateur. Réservé aux admins."""
+    user = _auth(token)
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Réservé aux administrateurs")
+    
+    # Ne pas permettre la suppression de soi-même
+    if user.get("id") == user_id:
+        raise HTTPException(400, "Vous ne pouvez pas supprimer votre propre compte")
+    
+    db_execute("DELETE FROM users WHERE id=?", (user_id,))
+    # Supprimer aussi les sessions de cet utilisateur
+    db_execute("DELETE FROM sessions WHERE username=(SELECT username FROM users WHERE id=?)", (user_id,))
+    return {"ok": True}
+
+
+@app.get("/api/users/{user_id}")
+def get_user(user_id: int, token: str=""):
+    """Récupère les informations d'un utilisateur. Réservé aux admins."""
+    user = _auth(token)
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Réservé aux administrateurs")
+    
+    u = db_fetchone("SELECT id, username, role, team_filter FROM users WHERE id=?", (user_id,))
+    if not u:
+        raise HTTPException(404, "Utilisateur introuvable")
+    return u
+
+
 # Export app for Vercel
 # Required for Vercel Serverless Functions
 # Explicitly export app at module level
