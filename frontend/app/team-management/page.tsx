@@ -15,7 +15,7 @@ import {
   getTeams,
   getMe
 } from '@/lib/api';
-import { TeamCoach, TeamParent, Team, User } from '@/lib/types';
+import { TeamCoach, TeamParent, Team, User, ParentRole } from '@/lib/types';
 
 export default function TeamManagementPage() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function TeamManagementPage() {
   const [parentForm, setParentForm] = useState<{
     team_name: string;
     parent_name: string;
-    role: string;
+    role: ParentRole;
     phone: string;
     email: string;
   }>({
@@ -205,7 +205,7 @@ export default function TeamManagementPage() {
         }
       } else {
         // Création
-        const res = await createTeamParent(parentForm as any, token);
+        const res = await createTeamParent(parentForm, token);
         if (res.error) {
           setError(res.error);
         } else {
