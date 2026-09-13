@@ -44,13 +44,7 @@ export default function TeamManagementPage() {
   // États pour le modal Parent
   const [showParentModal, setShowParentModal] = useState<boolean>(false);
   const [editingParent, setEditingParent] = useState<TeamParent | null>(null);
-  const [parentForm, setParentForm] = useState<{
-    team_name: string;
-    parent_name: string;
-    role: ParentRole;
-    phone: string;
-    email: string;
-  }>({
+  const [parentForm, setParentForm] = useState<Partial<Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>>>({
     team_name: '',
     parent_name: '',
     role: 'responsable_stable_de_marque',
@@ -205,7 +199,7 @@ export default function TeamManagementPage() {
         }
       } else {
         // Création
-        const res = await createTeamParent(parentForm, token);
+        const res = await createTeamParent(parentForm as Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>, token);
         if (res.error) {
           setError(res.error);
         } else {
