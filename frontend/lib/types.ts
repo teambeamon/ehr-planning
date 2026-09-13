@@ -147,9 +147,9 @@ export interface InventoryItem {
   name: string;
   category: InventoryCategory | string;
   quantity: number;
-  location: string;
-  responsible: string;
-  notes: string;
+  location?: string;
+  responsible?: string;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }

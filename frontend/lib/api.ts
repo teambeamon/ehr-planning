@@ -345,14 +345,14 @@ export async function getInventory(token: string, category?: string, search?: st
   return { data: Array.isArray(data) ? data : [], status: response.status };
 }
 
-export async function createInventoryItem(item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {
+export async function createInventoryItem(item: Partial<Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {
   const formData = new URLSearchParams();
-  formData.append('name', item.name);
-  formData.append('category', item.category);
-  formData.append('quantity', String(item.quantity));
-  if (item.location) formData.append('location', item.location);
-  if (item.responsible) formData.append('responsible', item.responsible);
-  if (item.notes) formData.append('notes', item.notes);
+  if (item.name !== undefined) formData.append('name', item.name);
+  if (item.category !== undefined) formData.append('category', item.category);
+  if (item.quantity !== undefined) formData.append('quantity', String(item.quantity));
+  if (item.location !== undefined) formData.append('location', item.location);
+  if (item.responsible !== undefined) formData.append('responsible', item.responsible);
+  if (item.notes !== undefined) formData.append('notes', item.notes);
   formData.append('token', token);
   const response = await fetch(getApiUrl('/api/inventory'), {
     method: 'POST',

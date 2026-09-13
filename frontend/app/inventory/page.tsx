@@ -24,14 +24,7 @@ export default function InventoryPage() {
   // États pour le modal
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const [formData, setFormData] = useState<{
-    name: string;
-    category: InventoryCategory | string;
-    quantity: number;
-    location: string;
-    responsible: string;
-    notes: string;
-  }>({
+  const [formData, setFormData] = useState<Partial<Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>>>({
     name: '',
     category: 'ballons',
     quantity: 1,
@@ -122,17 +115,17 @@ export default function InventoryPage() {
         if (res.error) {
           setError(res.error);
         } else {
-          setSuccess(`Article "${formData.name}" mis à jour avec succès`);
+          setSuccess(`Article "${formData.name || 'inconnu'}" mis à jour avec succès`);
           fetchInventory();
           closeModal();
         }
       } else {
         // Création
-        const res = await createInventoryItem(formData as any, token);
+        const res = await createInventoryItem(formData, token);
         if (res.error) {
           setError(res.error);
         } else {
-          setSuccess(`Article "${formData.name}" ajouté avec succès`);
+          setSuccess(`Article "${formData.name || 'inconnu'}" ajouté avec succès`);
           fetchInventory();
           closeModal();
         }
@@ -175,11 +168,11 @@ export default function InventoryPage() {
       setEditingItem(item);
       setFormData({
         name: item.name,
-        category: item.category as InventoryCategory,
+        category: item.category,
         quantity: item.quantity,
-        location: item.location || '',
-        responsible: item.responsible || '',
-        notes: item.notes || '',
+        location: item.location,
+        responsible: item.responsible,
+        notes: item.notes,
       });
     } else {
       setEditingItem(null);
@@ -209,7 +202,8 @@ export default function InventoryPage() {
   };
 
   const handleQuantityChange = (change: number) => {
-    const newQuantity = formData.quantity + change;
+    const currentQuantity = formData.quantity || 0;
+    const newQuantity = currentQuantity + change;
     if (newQuantity >= 0) {
       setFormData({ ...formData, quantity: newQuantity });
     }
@@ -461,7 +455,7 @@ export default function InventoryPage() {
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {inventory.map((item) => {
                     const color = INVENTORY_CATEGORY_COLORS[item.category] || '#6366f1';
-                    const lowStock = item.quantity <= 2;
+                    const lowStock = (item.quantity || 0) <= 2;
                     return (
                       <tr
                         key={item.id}
@@ -493,7 +487,7 @@ export default function InventoryPage() {
                                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                             }`}
                           >
-                            {item.quantity}
+                            {item.quantity || 0}
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
@@ -573,7 +567,7 @@ export default function InventoryPage() {
                 </label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as InventoryCategory })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 >
@@ -594,7 +588,7 @@ export default function InventoryPage() {
                     type="button"
                     onClick={() => handleQuantityChange(-1)}
                     className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50"
-                    disabled={formData.quantity <= 0}
+                    disabled={(formData.quantity || 0) <= 0}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -602,7 +596,7 @@ export default function InventoryPage() {
                   </button>
                   <input
                     type="number"
-                    value={formData.quantity}
+                    value={formData.quantity || 0}
                     onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
                     min="0"
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-center"
