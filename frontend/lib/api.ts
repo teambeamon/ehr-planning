@@ -335,14 +335,52 @@ export async function deleteTeamParent(parentId: number, token: string): Promise
 
 // ==================== INVENTORY ====================
 
-export async function getInventory(token: string, category?: string, search?: string): Promise<ApiResponse<InventoryItem[]>> {
+export interface InventoryReport {
+  summary?: any;
+  by_team?: any[];
+  by_category?: any[];
+  by_year?: any[];
+  by_condition?: any[];
+  to_replace?: InventoryItem[];
+  warranty_expiring?: InventoryItem[];
+}
+
+export async function getInventory(
+  token: string,
+  category?: string,
+  search?: string,
+  team?: string,
+  year?: string,
+  condition?: string,
+  supplier?: string
+): Promise<ApiResponse<InventoryItem[]>> {
   const params: Record<string, string> = { token };
   if (category && category !== 'tout') params.category = category;
+  if (team && team !== 'tout') params.team = team;
+  if (year) params.year = year;
+  if (condition && condition !== 'tout') params.condition = condition;
+  if (supplier) params.supplier = supplier;
   if (search) params.search = search;
+  
   const response = await fetch(getApiUrl('/api/inventory', params));
   if (!response.ok) return { error: 'Erreur', status: response.status };
   const data = await response.json();
   return { data: Array.isArray(data) ? data : [], status: response.status };
+}
+
+export async function getInventoryReport(token: string, reportType: string): Promise<ApiResponse<any>> {
+  const response = await fetch(getApiUrl('/api/inventory/report', { token, report_type: reportType }));
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function exportInventory(token: string): Promise<ApiResponse<Blob>> {
+  const response = await fetch(getApiUrl('/api/inventory/export', { token }));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  return { data: await response.blob(), status: response.status };
 }
 
 export async function createInventoryItem(item: Partial<Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {

@@ -161,8 +161,46 @@ def db_init():
             responsible TEXT DEFAULT '',
             notes TEXT DEFAULT '',
             created_at TEXT DEFAULT '',
-            updated_at TEXT DEFAULT ''
+            updated_at TEXT DEFAULT '',
+            purchase_date TEXT DEFAULT '',
+            purchase_year INTEGER DEFAULT NULL,
+            cost REAL DEFAULT NULL,
+            team_owner TEXT DEFAULT '',
+            item_condition TEXT DEFAULT 'neuf',
+            serial_number TEXT DEFAULT '',
+            supplier TEXT DEFAULT '',
+            warranty_until TEXT DEFAULT '',
+            assigned_to TEXT DEFAULT ''
         );
+        
+        -- Migration: ajouter les nouvelles colonnes si elles n'existent pas
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN purchase_date TEXT DEFAULT ''")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN purchase_year INTEGER DEFAULT NULL")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN cost REAL DEFAULT NULL")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN team_owner TEXT DEFAULT ''")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN item_condition TEXT DEFAULT 'neuf'")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN serial_number TEXT DEFAULT ''")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN supplier TEXT DEFAULT ''")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN warranty_until TEXT DEFAULT ''")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE inventory ADD COLUMN assigned_to TEXT DEFAULT ''")
+        except: pass
     """)
     conn.commit()
     pwd = hashlib.sha256(b"ehr2025").hexdigest()
@@ -1423,7 +1461,7 @@ INVENTORY_CATEGORIES = [
 ]
 
 @app.get("/api/inventory")
-def list_inventory(token: str="", category: str="", search: str=""):
+def list_inventory(token: str="", category: str="", search: str="", team: str="", year: str="", condition: str="", supplier: str=""):
     """Liste tout l'inventaire avec filtres optionnels."""
     _auth(token)
     sql = "SELECT * FROM inventory WHERE 1=1"
@@ -1431,10 +1469,22 @@ def list_inventory(token: str="", category: str="", search: str=""):
     if category and category != "tout":
         sql += " AND category=?"
         params.append(category)
+    if team and team != "tout":
+        sql += " AND team_owner=?"
+        params.append(team)
+    if year:
+        sql += " AND purchase_year=?"
+        params.append(year)
+    if condition and condition != "tout":
+        sql += " AND item_condition=?"
+        params.append(condition)
+    if supplier:
+        sql += " AND supplier LIKE ?"
+        params.append(f"%{supplier}%")
     if search:
-        sql += " AND (name LIKE ? OR notes LIKE ? OR location LIKE ? OR responsible LIKE ?)"
+        sql += " AND (name LIKE ? OR notes LIKE ? OR location LIKE ? OR responsible LIKE ? OR serial_number LIKE ? OR supplier LIKE ?)"
         search_param = f"%{search}%"
-        params.extend([search_param, search_param, search_param, search_param])
+        params.extend([search_param, search_param, search_param, search_param, search_param, search_param])
     sql += " ORDER BY category, name"
     return db_fetchall(sql, tuple(params) if params else ())
 
@@ -1446,16 +1496,27 @@ def create_inventory_item(
     location: str=Form(""),
     responsible: str=Form(""),
     notes: str=Form(""),
+    purchase_date: str=Form(""),
+    purchase_year: int=Form(None),
+    cost: float=Form(None),
+    team_owner: str=Form(""),
+    item_condition: str=Form("neuf"),
+    serial_number: str=Form(""),
+    supplier: str=Form(""),
+    warranty_until: str=Form(""),
+    assigned_to: str=Form(""),
     token: str=Form(...)
 ):
     """Ajoute un nouvel article à l'inventaire."""
     _auth(token)
     if category not in INVENTORY_CATEGORIES:
         raise HTTPException(400, f"Catégorie invalide. Doit être parmi: {', '.join(INVENTORY_CATEGORIES)}")
+    if item_condition not in ["neuf", "bon", "use", "a_remplacer", "hors_service"]:
+        raise HTTPException(400, f"Condition invalide. Doit être parmi: neuf, bon, use, a_remplacer, hors_service")
     now = datetime.now().isoformat()
     new_id = db_execute(
-        "INSERT INTO inventory (name, category, quantity, location, responsible, notes, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
-        (name, category, quantity, location, responsible, notes, now, now)
+        "INSERT INTO inventory (name, category, quantity, location, responsible, notes, purchase_date, purchase_year, cost, team_owner, item_condition, serial_number, supplier, warranty_until, assigned_to, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (name, category, quantity, location, responsible, notes, purchase_date, purchase_year, cost, team_owner, item_condition, serial_number, supplier, warranty_until, assigned_to, now, now)
     )
     return {"ok": True, "id": new_id}
 
@@ -1468,6 +1529,15 @@ def update_inventory_item(
     location: str=Form(""),
     responsible: str=Form(""),
     notes: str=Form(""),
+    purchase_date: str=Form(""),
+    purchase_year: int=Form(None),
+    cost: float=Form(None),
+    team_owner: str=Form(""),
+    item_condition: str=Form(""),
+    serial_number: str=Form(""),
+    supplier: str=Form(""),
+    warranty_until: str=Form(""),
+    assigned_to: str=Form(""),
     token: str=Form(...)
 ):
     """Met à jour un article de l'inventaire."""
@@ -1488,6 +1558,26 @@ def update_inventory_item(
         sets.append("responsible=?"); params.append(responsible)
     if notes is not None:
         sets.append("notes=?"); params.append(notes)
+    if purchase_date is not None:
+        sets.append("purchase_date=?"); params.append(purchase_date)
+    if purchase_year is not None:
+        sets.append("purchase_year=?"); params.append(purchase_year)
+    if cost is not None:
+        sets.append("cost=?"); params.append(cost)
+    if team_owner is not None:
+        sets.append("team_owner=?"); params.append(team_owner)
+    if item_condition:
+        if item_condition not in ["neuf", "bon", "use", "a_remplacer", "hors_service"]:
+            raise HTTPException(400, f"Condition invalide. Doit être parmi: neuf, bon, use, a_remplacer, hors_service")
+        sets.append("item_condition=?"); params.append(item_condition)
+    if serial_number is not None:
+        sets.append("serial_number=?"); params.append(serial_number)
+    if supplier is not None:
+        sets.append("supplier=?"); params.append(supplier)
+    if warranty_until is not None:
+        sets.append("warranty_until=?"); params.append(warranty_until)
+    if assigned_to is not None:
+        sets.append("assigned_to=?"); params.append(assigned_to)
     if sets:
         sets.append("updated_at=?"); params.append(now)
         params.append(item_id)
@@ -1500,6 +1590,99 @@ def delete_inventory_item(item_id: int, token: str=""):
     _auth(token)
     db_execute("DELETE FROM inventory WHERE id=?", (item_id,))
     return {"ok": True}
+
+
+@app.get("/api/inventory/report")
+def inventory_report(token: str="", report_type: str="summary"):
+    """Génère des rapports sur l'inventaire."""
+    _auth(token)
+    
+    if report_type == "summary":
+        # Résumé global
+        result = db_fetchone("""
+            SELECT 
+                COUNT(*) as total_items,
+                SUM(quantity) as total_quantity,
+                COALESCE(SUM(cost * quantity), 0) as total_value,
+                AVG(cost) as avg_cost
+            FROM inventory
+        """)
+        return result
+    
+    elif report_type == "by_team":
+        # Par équipe
+        return db_fetchall("""
+            SELECT 
+                team_owner as team,
+                COUNT(*) as item_count,
+                SUM(quantity) as total_quantity,
+                COALESCE(SUM(cost * quantity), 0) as total_value
+            FROM inventory
+            WHERE team_owner != ''
+            GROUP BY team_owner
+            ORDER BY total_value DESC
+        """)
+    
+    elif report_type == "by_category":
+        # Par catégorie
+        return db_fetchall("""
+            SELECT 
+                category,
+                COUNT(*) as item_count,
+                SUM(quantity) as total_quantity,
+                COALESCE(SUM(cost * quantity), 0) as total_value
+            FROM inventory
+            GROUP BY category
+            ORDER BY total_value DESC
+        """)
+    
+    elif report_type == "by_year":
+        # Par année d'achat
+        return db_fetchall("""
+            SELECT 
+                purchase_year as year,
+                COUNT(*) as item_count,
+                SUM(quantity) as total_quantity,
+                COALESCE(SUM(cost * quantity), 0) as total_value
+            FROM inventory
+            WHERE purchase_year IS NOT NULL
+            GROUP BY purchase_year
+            ORDER BY year DESC
+        """)
+    
+    elif report_type == "by_condition":
+        # Par état
+        return db_fetchall("""
+            SELECT 
+                item_condition as condition,
+                COUNT(*) as item_count,
+                SUM(quantity) as total_quantity,
+                COALESCE(SUM(cost * quantity), 0) as total_value
+            FROM inventory
+            GROUP BY item_condition
+            ORDER BY total_value DESC
+        """)
+    
+    elif report_type == "to_replace":
+        # Matériel à remplacer (condition = a_remplacer ou hors_service)
+        return db_fetchall("""
+            SELECT * FROM inventory
+            WHERE item_condition IN ('a_remplacer', 'hors_service')
+            ORDER BY team_owner, category
+        """)
+    
+    elif report_type == "warranty_expiring":
+        # Garanties expirant bientôt (dans les 30 jours)
+        return db_fetchall("""
+            SELECT * FROM inventory
+            WHERE warranty_until != '' 
+            AND warranty_until <= date('now', '+30 days')
+            AND warranty_until >= date('now')
+            ORDER BY warranty_until
+        """)
+    
+    else:
+        return {"error": "Type de rapport invalide"}
 
 
 # ── User Management ────────────────────────────────────────────────────────────

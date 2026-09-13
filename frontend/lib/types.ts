@@ -176,8 +176,56 @@ export interface InventoryItem {
   location?: string;
   responsible?: string;
   notes?: string;
+  purchase_date?: string;
+  purchase_year?: number;
+  cost?: number;
+  team_owner?: string;
+  item_condition?: string;
+  serial_number?: string;
+  supplier?: string;
+  warranty_until?: string;
+  assigned_to?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+// Conditions possibles pour le matériel
+export type InventoryCondition = 'neuf' | 'bon' | 'use' | 'a_remplacer' | 'hors_service';
+
+// Rapport d'inventaire
+export interface InventoryReportSummary {
+  total_items?: number;
+  total_quantity?: number;
+  total_value?: number;
+  avg_cost?: number;
+}
+
+export interface InventoryReportByTeam {
+  team?: string;
+  item_count?: number;
+  total_quantity?: number;
+  total_value?: number;
+}
+
+export interface InventoryReportByCategory {
+  category?: string;
+  item_count?: number;
+  total_quantity?: number;
+  total_value?: number;
+}
+
+export interface InventoryReportByYear {
+  year?: number;
+  item_count?: number;
+  total_quantity?: number;
+  total_value?: number;
+}
+
+export interface InventoryReportByCondition {
+  condition?: string;
+  item_count?: number;
+  total_quantity?: number;
+  total_value?: number;
 }
 
 // Mapper les catégories pour l'affichage
