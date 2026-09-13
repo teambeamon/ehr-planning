@@ -841,7 +841,7 @@ def deploy_version_auto(secret: str=Form(""), commit_message: str=Form("")):
     db_execute("UPDATE app_metadata SET last_updated=?, last_commit=?, deploy_message=? WHERE id=1",
                (now, now, commit_message or f"Auto-deployed version {version}"))
     
-    return {"status": "ok", "version": version, "last_updated": now, "message": "Déploiement automatique enregistré"
+    return {"status": "ok", "version": version, "last_updated": now, "message": "Déploiement automatique enregistré"}
 
 
 @app.get("/api/version")
