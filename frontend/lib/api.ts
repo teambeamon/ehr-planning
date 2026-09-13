@@ -1,7 +1,7 @@
 // Client API pour communiquer avec le backend FastAPI
 // Configuration pour Vercel: frontend et backend sur la même origine
 
-import { User, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo } from './types';
+import { User, Match, Team, Saison, Stats, StatsSalle, AppInfo, Indispo, TeamCoach, TeamParent, InventoryItem } from './types';
 
 // URL de base pour l'API - configurée via variables d'environnement
 const getBaseUrl = (): string => {
@@ -207,6 +207,197 @@ export async function getTeams(): Promise<ApiResponse<Team[]>> {
   }
   
   return { data: [], status: response.status };
+}
+
+// ==================== COACHES ====================
+
+export async function getTeamCoaches(token: string, teamName?: string): Promise<ApiResponse<TeamCoach[]>> {
+  const params: Record<string, string> = { token };
+  if (teamName) params.team_name = teamName;
+  const response = await fetch(getApiUrl('/api/teams/coaches', params));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  const data = await response.json();
+  return { data: Array.isArray(data) ? data : [], status: response.status };
+}
+
+export async function createTeamCoach(coach: Omit<TeamCoach, 'id' | 'created_at' | 'updated_at'>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {
+  const formData = new URLSearchParams();
+  formData.append('team_name', coach.team_name);
+  formData.append('coach_name', coach.coach_name);
+  formData.append('coach_order', String(coach.coach_order));
+  formData.append('token', token);
+  const response = await fetch(getApiUrl('/api/teams/coaches'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function updateTeamCoach(coachId: number, coach: Partial<Omit<TeamCoach, 'id' | 'created_at' | 'updated_at'>>, token: string): Promise<ApiResponse<{ ok: boolean }>> {
+  const formData = new URLSearchParams();
+  if (coach.team_name !== undefined) formData.append('team_name', coach.team_name);
+  if (coach.coach_name !== undefined) formData.append('coach_name', coach.coach_name);
+  if (coach.coach_order !== undefined) formData.append('coach_order', String(coach.coach_order));
+  formData.append('token', token);
+  const response = await fetch(getApiUrl(`/api/teams/coaches/${coachId}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function deleteTeamCoach(coachId: number, token: string): Promise<ApiResponse<void>> {
+  const response = await fetch(getApiUrl(`/api/teams/coaches/${coachId}`), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `token=${token}`,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { status: response.status };
+}
+
+// ==================== PARENTS ====================
+
+export async function getTeamParents(token: string, teamName?: string): Promise<ApiResponse<TeamParent[]>> {
+  const params: Record<string, string> = { token };
+  if (teamName) params.team_name = teamName;
+  const response = await fetch(getApiUrl('/api/teams/parents', params));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  const data = await response.json();
+  return { data: Array.isArray(data) ? data : [], status: response.status };
+}
+
+export async function createTeamParent(parent: Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {
+  const formData = new URLSearchParams();
+  formData.append('team_name', parent.team_name);
+  formData.append('parent_name', parent.parent_name);
+  formData.append('role', parent.role);
+  if (parent.phone) formData.append('phone', parent.phone);
+  if (parent.email) formData.append('email', parent.email);
+  formData.append('token', token);
+  const response = await fetch(getApiUrl('/api/teams/parents'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function updateTeamParent(parentId: number, parent: Partial<Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>>, token: string): Promise<ApiResponse<{ ok: boolean }>> {
+  const formData = new URLSearchParams();
+  if (parent.team_name !== undefined) formData.append('team_name', parent.team_name);
+  if (parent.parent_name !== undefined) formData.append('parent_name', parent.parent_name);
+  if (parent.role !== undefined) formData.append('role', parent.role);
+  if (parent.phone !== undefined) formData.append('phone', parent.phone);
+  if (parent.email !== undefined) formData.append('email', parent.email);
+  formData.append('token', token);
+  const response = await fetch(getApiUrl(`/api/teams/parents/${parentId}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function deleteTeamParent(parentId: number, token: string): Promise<ApiResponse<void>> {
+  const response = await fetch(getApiUrl(`/api/teams/parents/${parentId}`), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `token=${token}`,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { status: response.status };
+}
+
+// ==================== INVENTORY ====================
+
+export async function getInventory(token: string, category?: string, search?: string): Promise<ApiResponse<InventoryItem[]>> {
+  const params: Record<string, string> = { token };
+  if (category && category !== 'tout') params.category = category;
+  if (search) params.search = search;
+  const response = await fetch(getApiUrl('/api/inventory', params));
+  if (!response.ok) return { error: 'Erreur', status: response.status };
+  const data = await response.json();
+  return { data: Array.isArray(data) ? data : [], status: response.status };
+}
+
+export async function createInventoryItem(item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>, token: string): Promise<ApiResponse<{ ok: boolean; id: number }>> {
+  const formData = new URLSearchParams();
+  formData.append('name', item.name);
+  formData.append('category', item.category);
+  formData.append('quantity', String(item.quantity));
+  if (item.location) formData.append('location', item.location);
+  if (item.responsible) formData.append('responsible', item.responsible);
+  if (item.notes) formData.append('notes', item.notes);
+  formData.append('token', token);
+  const response = await fetch(getApiUrl('/api/inventory'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function updateInventoryItem(itemId: number, item: Partial<Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>>, token: string): Promise<ApiResponse<{ ok: boolean }>> {
+  const formData = new URLSearchParams();
+  if (item.name !== undefined) formData.append('name', item.name);
+  if (item.category !== undefined) formData.append('category', item.category);
+  if (item.quantity !== undefined) formData.append('quantity', String(item.quantity));
+  if (item.location !== undefined) formData.append('location', item.location);
+  if (item.responsible !== undefined) formData.append('responsible', item.responsible);
+  if (item.notes !== undefined) formData.append('notes', item.notes);
+  formData.append('token', token);
+  const response = await fetch(getApiUrl(`/api/inventory/${itemId}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { data: await response.json(), status: response.status };
+}
+
+export async function deleteInventoryItem(itemId: number, token: string): Promise<ApiResponse<void>> {
+  const response = await fetch(getApiUrl(`/api/inventory/${itemId}`), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `token=${token}`,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erreur' }));
+    return { error: error.detail, status: response.status };
+  }
+  return { status: response.status };
 }
 
 // Couleurs pour les équipes

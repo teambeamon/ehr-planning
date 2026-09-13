@@ -69,11 +69,23 @@ export default function Navbar() {
             <Link href="/classements" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
               Classements
             </Link>
+            {user && (
+              <Link href="/inventory" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
+                Inventaire
+              </Link>
+            )}
             
             {user && (
-              <Link href="/admin" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium bg-blue-600 dark:bg-blue-700">
-                Admin
-              </Link>
+              <>
+                <Link href="/admin" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium bg-blue-600 dark:bg-blue-700">
+                  Admin
+                </Link>
+                {user.role === 'admin' && (
+                  <Link href="/team-management" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium bg-green-600 dark:bg-green-700">
+                    Encadrants
+                  </Link>
+                )}
+              </>
             )}
           </div>
 

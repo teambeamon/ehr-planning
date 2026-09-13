@@ -148,6 +148,36 @@ def db_init():
             key TEXT PRIMARY KEY,
             value TEXT DEFAULT ''
         );
+        CREATE TABLE IF NOT EXISTS team_coaches (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            team_name TEXT NOT NULL,
+            coach_name TEXT NOT NULL,
+            coach_order INTEGER DEFAULT 1,
+            created_at TEXT DEFAULT '',
+            updated_at TEXT DEFAULT '',
+            UNIQUE(team_name, coach_order)
+        );
+        CREATE TABLE IF NOT EXISTS team_parents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            team_name TEXT NOT NULL,
+            parent_name TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'responsable_stable_de_marque',
+            phone TEXT DEFAULT '',
+            email TEXT DEFAULT '',
+            created_at TEXT DEFAULT '',
+            updated_at TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL DEFAULT 'autre',
+            quantity INTEGER DEFAULT 1,
+            location TEXT DEFAULT '',
+            responsible TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            created_at TEXT DEFAULT '',
+            updated_at TEXT DEFAULT ''
+        );
     """)
     conn.commit()
     pwd = hashlib.sha256(b"ehr2025").hexdigest()
@@ -1247,6 +1277,245 @@ def delete_user(user_id: int, token: str=""):
     if u["role"] != "admin": raise HTTPException(403)
     db_execute("DELETE FROM users WHERE id=?", (user_id,))
     return {"ok":True}
+
+
+# ── Team Coaches ──────────────────────────────────────────────────────────────
+
+@app.get("/api/teams/coaches")
+def list_team_coaches(team_name: str="", token: str=""):
+    """Liste tous les entraîneurs ou ceux d'une équipe spécifique."""
+    _auth(token)
+    if team_name:
+        return db_fetchall("SELECT * FROM team_coaches WHERE team_name=? ORDER BY coach_order", (team_name,))
+    return db_fetchall("SELECT * FROM team_coaches ORDER BY team_name, coach_order")
+
+@app.post("/api/teams/coaches")
+def create_team_coach(
+    team_name: str=Form(...),
+    coach_name: str=Form(...),
+    coach_order: int=Form(1),
+    token: str=Form(...)
+):
+    """Ajoute un entraîneur à une équipe."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    # Vérifier qu'il n'y a pas déjà un entraîneur avec le même ordre pour cette équipe
+    existing = db_fetchone(
+        "SELECT id FROM team_coaches WHERE team_name=? AND coach_order=?",
+        (team_name, coach_order)
+    )
+    if existing:
+        raise HTTPException(400, f"Un entraîneur avec l'ordre {coach_order} existe déjà pour cette équipe")
+    # Limiter à 3 entraîneurs par équipe
+    count = db_fetchone(
+        "SELECT COUNT(*) as cnt FROM team_coaches WHERE team_name=?",
+        (team_name,)
+    )
+    if count and count["cnt"] >= 3:
+        raise HTTPException(400, "Maximum 3 entraîneurs par équipe atteint")
+    new_id = db_execute(
+        "INSERT INTO team_coaches (team_name, coach_name, coach_order, created_at, updated_at) VALUES (?,?,?,?,?)",
+        (team_name, coach_name, coach_order, now, now)
+    )
+    return {"ok": True, "id": new_id}
+
+@app.put("/api/teams/coaches/{coach_id}")
+def update_team_coach(
+    coach_id: int,
+    team_name: str=Form(""),
+    coach_name: str=Form(""),
+    coach_order: int=Form(None),
+    token: str=Form(...)
+):
+    """Met à jour un entraîneur."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    sets, params = [], []
+    if team_name:
+        sets.append("team_name=?"); params.append(team_name)
+    if coach_name:
+        sets.append("coach_name=?"); params.append(coach_name)
+    if coach_order is not None:
+        sets.append("coach_order=?"); params.append(coach_order)
+    if sets:
+        sets.append("updated_at=?"); params.append(now)
+        params.append(coach_id)
+        db_execute(f"UPDATE team_coaches SET {', '.join(sets)} WHERE id=?", tuple(params))
+    return {"ok": True}
+
+@app.delete("/api/teams/coaches/{coach_id}")
+def delete_team_coach(coach_id: int, token: str=""):
+    """Supprime un entraîneur."""
+    _auth(token)
+    db_execute("DELETE FROM team_coaches WHERE id=?", (coach_id,))
+    return {"ok": True}
+
+
+# ── Team Parents ──────────────────────────────────────────────────────────────
+
+PARENT_ROLES = ["responsable_stable_de_marque", "responsable_salle"]
+
+@app.get("/api/teams/parents")
+def list_team_parents(team_name: str="", token: str=""):
+    """Liste tous les parents ou ceux d'une équipe spécifique."""
+    _auth(token)
+    if team_name:
+        return db_fetchall("SELECT * FROM team_parents WHERE team_name=? ORDER BY role, parent_name", (team_name,))
+    return db_fetchall("SELECT * FROM team_parents ORDER BY team_name, role, parent_name")
+
+@app.post("/api/teams/parents")
+def create_team_parent(
+    team_name: str=Form(...),
+    parent_name: str=Form(...),
+    role: str=Form("responsable_stable_de_marque"),
+    phone: str=Form(""),
+    email: str=Form(""),
+    token: str=Form(...)
+):
+    """Ajoute un parent dirigeant à une équipe."""
+    _auth(token)
+    if role not in PARENT_ROLES:
+        raise HTTPException(400, f"Rôle invalide. Doit être parmi: {', '.join(PARENT_ROLES)}")
+    now = datetime.now().isoformat()
+    new_id = db_execute(
+        "INSERT INTO team_parents (team_name, parent_name, role, phone, email, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+        (team_name, parent_name, role, phone, email, now, now)
+    )
+    return {"ok": True, "id": new_id}
+
+@app.put("/api/teams/parents/{parent_id}")
+def update_team_parent(
+    parent_id: int,
+    team_name: str=Form(""),
+    parent_name: str=Form(""),
+    role: str=Form(""),
+    phone: str=Form(""),
+    email: str=Form(""),
+    token: str=Form(...)
+):
+    """Met à jour un parent dirigeant."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    sets, params = [], []
+    if team_name:
+        sets.append("team_name=?"); params.append(team_name)
+    if parent_name:
+        sets.append("parent_name=?"); params.append(parent_name)
+    if role:
+        if role not in PARENT_ROLES:
+            raise HTTPException(400, f"Rôle invalide. Doit être parmi: {', '.join(PARENT_ROLES)}")
+        sets.append("role=?"); params.append(role)
+    if phone is not None:
+        sets.append("phone=?"); params.append(phone)
+    if email is not None:
+        sets.append("email=?"); params.append(email)
+    if sets:
+        sets.append("updated_at=?"); params.append(now)
+        params.append(parent_id)
+        db_execute(f"UPDATE team_parents SET {', '.join(sets)} WHERE id=?", tuple(params))
+    return {"ok": True}
+
+@app.delete("/api/teams/parents/{parent_id}")
+def delete_team_parent(parent_id: int, token: str=""):
+    """Supprime un parent dirigeant."""
+    _auth(token)
+    db_execute("DELETE FROM team_parents WHERE id=?", (parent_id,))
+    return {"ok": True}
+
+
+# ── Inventory ─────────────────────────────────────────────────────────────────
+
+INVENTORY_CATEGORIES = [
+    "ballons",
+    "maillots",
+    "dossards",
+    "cles",
+    "badges",
+    "chronometres",
+    "buts_portatifs",
+    "filets",
+    "autre"
+]
+
+@app.get("/api/inventory")
+def list_inventory(token: str="", category: str="", search: str=""):
+    """Liste tout l'inventaire avec filtres optionnels."""
+    _auth(token)
+    sql = "SELECT * FROM inventory WHERE 1=1"
+    params: list = []
+    if category and category != "tout":
+        sql += " AND category=?"
+        params.append(category)
+    if search:
+        sql += " AND (name LIKE ? OR notes LIKE ? OR location LIKE ? OR responsible LIKE ?)"
+        search_param = f"%{search}%"
+        params.extend([search_param, search_param, search_param, search_param])
+    sql += " ORDER BY category, name"
+    return db_fetchall(sql, tuple(params) if params else ())
+
+@app.post("/api/inventory")
+def create_inventory_item(
+    name: str=Form(...),
+    category: str=Form("autre"),
+    quantity: int=Form(1),
+    location: str=Form(""),
+    responsible: str=Form(""),
+    notes: str=Form(""),
+    token: str=Form(...)
+):
+    """Ajoute un nouvel article à l'inventaire."""
+    _auth(token)
+    if category not in INVENTORY_CATEGORIES:
+        raise HTTPException(400, f"Catégorie invalide. Doit être parmi: {', '.join(INVENTORY_CATEGORIES)}")
+    now = datetime.now().isoformat()
+    new_id = db_execute(
+        "INSERT INTO inventory (name, category, quantity, location, responsible, notes, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
+        (name, category, quantity, location, responsible, notes, now, now)
+    )
+    return {"ok": True, "id": new_id}
+
+@app.put("/api/inventory/{item_id}")
+def update_inventory_item(
+    item_id: int,
+    name: str=Form(""),
+    category: str=Form(""),
+    quantity: int=Form(None),
+    location: str=Form(""),
+    responsible: str=Form(""),
+    notes: str=Form(""),
+    token: str=Form(...)
+):
+    """Met à jour un article de l'inventaire."""
+    _auth(token)
+    now = datetime.now().isoformat()
+    sets, params = [], []
+    if name:
+        sets.append("name=?"); params.append(name)
+    if category:
+        if category not in INVENTORY_CATEGORIES:
+            raise HTTPException(400, f"Catégorie invalide. Doit être parmi: {', '.join(INVENTORY_CATEGORIES)}")
+        sets.append("category=?"); params.append(category)
+    if quantity is not None:
+        sets.append("quantity=?"); params.append(quantity)
+    if location is not None:
+        sets.append("location=?"); params.append(location)
+    if responsible is not None:
+        sets.append("responsible=?"); params.append(responsible)
+    if notes is not None:
+        sets.append("notes=?"); params.append(notes)
+    if sets:
+        sets.append("updated_at=?"); params.append(now)
+        params.append(item_id)
+        db_execute(f"UPDATE inventory SET {', '.join(sets)} WHERE id=?", tuple(params))
+    return {"ok": True}
+
+@app.delete("/api/inventory/{item_id}")
+def delete_inventory_item(item_id: int, token: str=""):
+    """Supprime un article de l'inventaire."""
+    _auth(token)
+    db_execute("DELETE FROM inventory WHERE id=?", (item_id,))
+    return {"ok": True}
+
 
 # Export app for Vercel
 # Required for Vercel Serverless Functions

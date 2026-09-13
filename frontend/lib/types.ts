@@ -103,3 +103,79 @@ export interface MatchImportData {
   journee: number;
   saison?: string;
 }
+
+export type ParentRole = 'responsable_stable_de_marque' | 'responsable_salle';
+
+export interface TeamCoach {
+  id: number;
+  team_name: string;
+  coach_name: string;
+  coach_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TeamParent {
+  id: number;
+  team_name: string;
+  parent_name: string;
+  role: ParentRole;
+  phone: string;
+  email: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TeamWithStaff extends Team {
+  coaches: TeamCoach[];
+  parents: TeamParent[];
+}
+
+export type InventoryCategory = 
+  | 'ballons'
+  | 'maillots'
+  | 'dossards'
+  | 'cles'
+  | 'badges'
+  | 'chronometres'
+  | 'buts_portatifs'
+  | 'filets'
+  | 'autre';
+
+export interface InventoryItem {
+  id: number;
+  name: string;
+  category: InventoryCategory | string;
+  quantity: number;
+  location: string;
+  responsible: string;
+  notes: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Mapper les catégories pour l'affichage
+export const INVENTORY_CATEGORY_LABELS: Record<string, string> = {
+  'ballons': 'Ballons',
+  'maillots': 'Maillots',
+  'dossards': 'Dossards',
+  'cles': 'Clés',
+  'badges': 'Badges',
+  'chronometres': 'Chronomètres',
+  'buts_portatifs': 'Buts portatifs',
+  'filets': 'Filets',
+  'autre': 'Autre'
+};
+
+// Couleurs pour les catégories
+export const INVENTORY_CATEGORY_COLORS: Record<string, string> = {
+  'ballons': '#3b82f6',
+  'maillots': '#10b981',
+  'dossards': '#f59e0b',
+  'cles': '#ef4444',
+  'badges': '#8b5cf6',
+  'chronometres': '#06b6d4',
+  'buts_portatifs': '#84cc16',
+  'filets': '#eab308',
+  'autre': '#6366f1'
+};
