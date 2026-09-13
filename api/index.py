@@ -1249,9 +1249,9 @@ def delete_user(user_id: int, token: str=""):
     return {"ok":True}
 
 # Export app for Vercel
-
 # Required for Vercel Serverless Functions
 # Explicitly export app at module level
-
 # Vercel requires app to be at module level
-# This ensures app is accessible
+
+# Ensure app is accessible at module level for Vercel
+app = app
