@@ -20,6 +20,7 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
   
   // États pour le modal
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -58,7 +59,7 @@ export default function UserManagementPage() {
     const storedToken = localStorage.getItem('ehr_token');
     const storedUser = localStorage.getItem('ehr_user');
     
-    if (storedToken && storedUser) {
+    if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser && parsedUser.username) {
@@ -68,16 +69,17 @@ export default function UserManagementPage() {
           const res = await getMe(storedToken);
           if (!res.data) {
             handleLogout();
+            return;
           }
-        } else {
-          handleLogout();
+          setAuthChecked(true);
+          return;
         }
       } catch (error) {
-        handleLogout();
+        // token invalide
       }
-    } else {
-      router.push('/admin');
     }
+    // Si on arrive ici, c'est qu'il n'y a pas de session valide
+    handleLogout();
   };
 
   const handleLogout = () => {
@@ -233,6 +235,16 @@ export default function UserManagementPage() {
     return roleObj ? roleObj.label : role;
   };
 
+  // Attendre que l'authentification soit vérifiée
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  // Si l'auth a échoué, on a déjà été redirigé par checkAuth
   if (!user) {
     router.push('/admin');
     return null;

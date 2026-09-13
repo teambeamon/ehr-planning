@@ -20,6 +20,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
   
   // États pour le modal
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -61,16 +62,17 @@ export default function InventoryPage() {
           const res = await getMe(storedToken);
           if (!res.data) {
             handleLogout();
+            return;
           }
-        } else {
-          handleLogout();
+          setAuthChecked(true);
+          return;
         }
       } catch (error) {
-        handleLogout();
+        // token invalide
       }
-    } else {
-      router.push('/admin');
     }
+    // Si on arrive ici, c'est qu'il n'y a pas de session valide
+    handleLogout();
   };
 
   const handleLogout = () => {
@@ -221,34 +223,20 @@ export default function InventoryPage() {
     'autre'
   ];
 
+  // Attendre que l'authentification soit vérifiée
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  // Si l'auth a échoué, on a déjà été redirigé par checkAuth
+  // Cette vérification est une sécurité supplémentaire
   if (!user) {
     router.push('/admin');
     return null;
-  }
-
-  // Vérifier que l'utilisateur est connecté (au moins viewer)
-  if (!user.username) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-        <Navbar />
-        <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Accès refusé
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Veuillez vous connecter pour accéder à cette page.
-            </p>
-            <button
-              onClick={() => router.push('/admin')}
-              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-            >
-              Se connecter
-            </button>
-          </div>
-        </main>
-      </div>
-    );
   }
 
   // Calculer les totaux par catégorie
