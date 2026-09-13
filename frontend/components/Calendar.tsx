@@ -205,6 +205,7 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           locale="fr"
+          firstDay={1}
           headerToolbar={{
             left: 'prev,next today',
             center: 'title',
