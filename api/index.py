@@ -337,13 +337,18 @@ def _noise(text):
     return False
 
 # Mapping couleur de fond Excel → salle EHR
+# selon les instructions :
+# - Jaune → Rodemack
+# - Bleu → Hettange
+# - Orange → Kanfen
+# - Sans couleur → Pas encore décide
 BG_TO_SALLE = {
-    40: "Hettange Hall",   # bleu  #00CCFF
-    50: "Hettange Poly",   # vert  #99CC00
-    13: "Rodemack",        # jaune #FFFF00
-    51: "Kanfen",          # orange #FFCC00
-    9:  "",                # blanc = salle non definie
-    64: "",                # pas de fond = salle non definie
+    40: "Hettange",       # bleu  #00CCFF → Hettange
+    50: "Hettange",       # vert  #99CC00 → Hettange
+    13: "Rodemack",       # jaune #FFFF00 → Rodemack
+    51: "Kanfen",         # orange #FFCC00 → Kanfen
+    9:  "",               # blanc = pas encore décide
+    64: "",               # pas de fond = pas encore decide
     65: "",
     0:  "",
 }
@@ -428,10 +433,11 @@ def _read_xls_new_format(path):
     
     # Lire les salles pour chaque colonne d'équipe (lignes 8-10)
     # Mapping: colonne -> salle
+    # selon les instructions : Jaune=Rodemack, Bleu=Hettange, Orange=Kanfen
     salle_map = {}
     salle_keywords = {
-        'hall': 'Hettange Hall',
-        'poly': 'Hettange Poly', 
+        'hall': 'Hettange',
+        'poly': 'Hettange', 
         'rodemack': 'Rodemack',
         'kanfen': 'Kanfen'
     }
@@ -544,7 +550,7 @@ def parse_excel(path):
             salle = ""
             if home == 1:
                 bg = bg_map.get(col, 9)
-                salle = BG_TO_SALLE.get(bg, "Kanfen")
+                salle = BG_TO_SALLE.get(bg, "")
             journee = journee_map.get(col, "")
             matches.append({
                 "date_str": current_date, "date_iso": _iso(current_date),
@@ -710,6 +716,16 @@ def _pdate(s: str) -> str:
 def _fix(m: dict) -> dict:
     m["home"] = True if m.get("home")==1 else (False if m.get("home")==0 else None)
     m["manually_edited"] = bool(m.get("manually_edited",0))
+    
+    # Normaliser les noms de salles selon le nouveau mapping
+    # Anciennes valeurs -> Nouvelles valeurs
+    salle_mapping = {
+        "Hettange Hall": "Hettange",
+        "Hettange Poly": "Hettange",
+    }
+    if "salle" in m and m["salle"] in salle_mapping:
+        m["salle"] = salle_mapping[m["salle"]]
+    
     return m
 
 # ── Pages HTML ────────────────────────────────────────────────────────────────

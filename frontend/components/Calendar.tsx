@@ -21,7 +21,8 @@ interface CalendarProps {
 }
 
 // Salles EHR connues
-const EHR_SALLES = ['Hettange Hall', 'Hettange Poly', 'Rodemack', 'Kanfen'];
+// selon les instructions : Jaune=Rodemack, Bleu=Hettange, Orange=Kanfen
+const EHR_SALLES = ['Hettange', 'Rodemack', 'Kanfen'];
 
 // Recalculer home a partir du texte si non defini (securite)
 const computeHomeFromText = (match: Match): number | null => {
