@@ -324,20 +324,20 @@ export default function UserManagementPage() {
         </div>
 
         {/* Liste des utilisateurs */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Nom d'utilisateur
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Rôle
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">
                   Filtre équipe
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Actions
                 </th>
               </tr>
@@ -348,12 +348,12 @@ export default function UserManagementPage() {
                   key={u.id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
                       {u.username}
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
                       u.role === 'manager' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -363,27 +363,27 @@ export default function UserManagementPage() {
                       {getRoleLabel(u.role)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">
                     {u.team_filter || '-'}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-right">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-3 py-2 whitespace-nowrap text-right">
+                    <div className="flex justify-end gap-1">
                       <button
                         onClick={() => openModal(u)}
-                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition"
+                        className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition"
                         title="Modifier"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <button
                         onClick={() => handleDelete(u.id, u.username)}
-                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition"
+                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition"
                         title="Supprimer"
                         disabled={u.username === user?.username}
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>

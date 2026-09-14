@@ -303,6 +303,42 @@ Co-Authored-By: Mistral Vibe <vibe@mistral.ai>"
 - Variables : `snake_case`
 - Constantes : `UPPER_SNAKE_CASE`
 
+### Responsive Design (Optimisations Septembre 2026)
+
+**Pattern uniforme pour toutes les tables :**
+```tsx
+// Conteneur
+<div className="overflow-x-auto">
+  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+
+// En-têtes et cellules
+<th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+<td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+
+// Colonnes à masquer sur mobile
+<th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 ...">  // Masqué < 768px
+<th className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 ...">  // Masqué < 1024px
+
+// Icônes
+<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+// Boutons dans les tables
+<button className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition">
+```
+
+**Colonnes prioritaires sur mobile :**
+1. **Toujours visibles** : Nom/ID principal, Actions
+2. **md:** (768px+) : Filtres, catégories, quantités  
+3. **lg:** (1024px+) : Détails, descriptions, valeurs monétaires
+
+**Pages optimisées (Sept 2026)** :
+- ✅ admin/page.tsx (table matchs)
+- ✅ user-management/page.tsx (table utilisateurs)
+- ✅ classements/page.tsx (table classements)
+- ✅ matches/page.tsx (déjà optimisé)
+- ✅ inventory/page.tsx (déjà optimisé)
+- ✅ salles/page.tsx (déjà optimisé)
+
 ---
 
 ## 📝 Instructions pour l'Agent
@@ -425,6 +461,25 @@ Voir : `frontend/components/Calendar.tsx` fonction `computeHomeFromText`
 
 ---
 
+## 🤖 Commandes Spécialisées Agent
+
+Pour interagir avec l'agent dédié EHR Planning :
+
+| Commande | Description | Exemple |
+|----------|-------------|---------|
+| `/vibe-agent propose des optimisations du site` | Analyse et suggestions d'améliorations | Optimisation des performances, UX, code |
+| `/vibe-agent corrige le responsive des tables` | Applique le pattern responsive à toutes les tables | Padding compact, masquage colonnes |
+| `/vibe-agent vérifie les erreurs de build` | Diagnostic des problèmes TypeScript/Python | Analyse des logs, suggestions de fix |
+| `/vibe-agent corrige [problème]` | Correction ciblée d'un problème spécifique | Ex: filtre équipes, affichage mobile |
+
+**Format recommandé :**
+```
+/vibe-agent [action] [contexte optionnel]
+```
+
+---
+
 **Dernière mise à jour** : 13 septembre 2026  
-**Version** : 1.0  
+**Version** : 1.1  
 **Mainteneur** : Mistral Vibe
+**Optimisations responsive** : 13 septembre 2026 (toutes les tables)

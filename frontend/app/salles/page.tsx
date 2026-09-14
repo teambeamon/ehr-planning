@@ -347,17 +347,17 @@ export default function SallesPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                         Salle
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                        Nombre de matchs
+                      <th className="px-3 py-2 md:px-4 md:py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                        Matchs
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                        Details
+                      <th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                        Détails
                       </th>
                     </tr>
                   </thead>
@@ -366,25 +366,25 @@ export default function SallesPage() {
                       .sort(([, a], [, b]) => b.count - a.count)
                       .map(([salle, data], index) => (
                         <tr key={salle} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
                             {salle || 'Inconnue'}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-bold text-gray-900 dark:text-gray-100">
+                          <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-center font-bold text-gray-900 dark:text-gray-100">
                             {data.count}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                             {data.count > 0 && (
-                              <details className="text-sm">
-                                <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
+                              <details className="text-xs md:text-sm">
+                                <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-xs md:text-sm">
                                   Voir les {data.count} matchs
                                 </summary>
-                                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div className="mt-2 p-2 md:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                   <table className="w-full text-xs">
                                     <thead>
                                       <tr className="text-left text-gray-500 dark:text-gray-400">
-                                        <th className="pr-2">Date</th>
-                                        <th className="pr-2">Match</th>
-                                        <th>Journee</th>
+                                        <th className="pr-2 py-1">Date</th>
+                                        <th className="pr-2 py-1">Match</th>
+                                        <th className="py-1">Journée</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -393,8 +393,8 @@ export default function SallesPage() {
                                         .map((match, idx) => (
                                           <tr key={idx} className="border-t border-gray-200 dark:border-gray-700">
                                             <td className="py-1 pr-2">{formatDate(match.date_iso)}</td>
-                                            <td className="py-1 pr-2">{match.time_str} - {match.team_name}</td>
-                                            <td className="py-1">{match.journee}</td>
+                                            <td className="py-1 pr-2 truncate max-w-[200px]">{match.time_str} - {match.team_name}</td>
+                                            <td className="py-1 truncate">{match.journee}</td>
                                           </tr>
                                         ))}
                                     </tbody>

@@ -236,17 +236,17 @@ export default function MatchesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Match</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Salle</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Journée</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Saison</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Score</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Match</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Salle</th>
+                    <th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Journée</th>
+                    <th className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Saison</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Type</th>
                     {token && (
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                      <th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                     )}
                   </tr>
                 </thead>
@@ -255,38 +255,39 @@ export default function MatchesPage() {
                     .sort((a, b) => new Date(a.date_iso).getTime() - new Date(b.date_iso).getTime())
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-gray-900 dark:text-gray-100">
                           {formatDate(match.date_iso)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
+                        <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
                             <span 
-                              className="badge-team" 
+                              className="badge-team text-xs"
                               style={{ backgroundColor: getTeamColor(match.team_name) }}
                             >
                               {match.team_name}
                             </span>
-                            <span className="text-gray-500 dark:text-gray-400">vs</span>
+                            <span className="hidden md:inline text-gray-500 dark:text-gray-400">vs</span>
+                            <span className="md:hidden text-gray-500 dark:text-gray-400 text-xs">-</span>
                             <span 
-                              className="badge-team" 
+                              className="badge-team text-xs"
                               style={{ backgroundColor: getTeamColor(match.opponent) }}
                             >
                               {match.opponent}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                          {match.salle}
+                        <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-gray-600 dark:text-gray-400">
+                          {match.salle || '-'}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                        <td className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                           {match.journee}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                           <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs font-medium">
                             {match.saison}
                           </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
+                        <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-right">
                           <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                             match.match_type === 'champ' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
                             match.match_type === 'coupe' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
@@ -297,13 +298,13 @@ export default function MatchesPage() {
                           </span>
                         </td>
                         {token && (
-                          <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <td className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleDeleteMatch(match.id)}
                               className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition"
                               title="Supprimer"
                             >
-                              <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>

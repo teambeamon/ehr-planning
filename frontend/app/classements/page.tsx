@@ -170,59 +170,59 @@ export default function ClassementsPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Joués</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">V-N-D</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">BP</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">BC</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Diff</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Points</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Position</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">Joués</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">V-N-D</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">BP</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">BC</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">Diff</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Points</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {sortedTeams().map(([teamName, stats], index) => (
                     <tr key={teamName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                         {index + 1}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
                           <span 
-                            className="w-4 h-4 rounded-full" 
+                            className="w-3 h-3 rounded-full" 
                             style={{ backgroundColor: getTeamColor(teamName) }}
                           ></span>
-                          <span className="font-medium text-gray-900 dark:text-gray-100">{teamName}</span>
+                          <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{teamName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm">
+                      <td className="px-3 py-2 whitespace-nowrap text-center text-sm hidden lg:table-cell">
                         {stats.joues}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className="flex justify-center space-x-2">
-                          <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+                      <td className="px-3 py-2 whitespace-nowrap text-center">
+                        <span className="flex justify-center space-x-1">
+                          <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
                             {stats.victoires}
                           </span>
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 rounded-full text-xs font-medium">
+                          <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 rounded-full text-xs font-medium">
                             {stats.nuls}
                           </span>
-                          <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-medium">
+                          <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-medium">
                             {stats.defaites}
                           </span>
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                      <td className="px-3 py-2 whitespace-nowrap text-center text-sm font-medium hidden md:table-cell">
                         {stats.pointsPour}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                      <td className="px-3 py-2 whitespace-nowrap text-center text-sm font-medium hidden md:table-cell">
                         {stats.pointsContre}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm">
+                      <td className="px-3 py-2 whitespace-nowrap text-center text-sm hidden md:table-cell">
                         <span className={`font-medium ${stats.difference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {stats.difference >= 0 ? '+' : ''}{stats.difference}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-bold text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 whitespace-nowrap text-center text-sm font-bold text-gray-900 dark:text-gray-100">
                         {stats.points}
                       </td>
                     </tr>

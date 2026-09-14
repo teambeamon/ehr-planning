@@ -410,34 +410,76 @@ export default function InventoryPage() {
             </button>
           </div>
           {inventory.length === 0 ? <div className="text-center py-12"><svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><p className="text-gray-500 dark:text-gray-400">Aucun article</p></div> :
-            <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800"><tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Article</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Qté</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Coût</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th></tr></thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                {inventory.map(item => {
-                  const lowStock = (item.quantity || 0) <= 2; const color = INVENTORY_CATEGORY_COLORS[item.category as InventoryCategory] || '#6366f1';
-                  const itemValue = (item.cost || 0) * (item.quantity || 0);
-                  return <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-3 py-2 whitespace-nowrap"><div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>{item.serial_number && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">N°: {item.serial_number}</div>}{item.supplier && <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">{item.supplier}</div>}{item.purchase_year && <div className="text-xs text-gray-500 dark:text-gray-400">{item.purchase_year}</div>}</td>
-                    <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${color}20`, color}}>{INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}</span></td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.team_owner || '-'}</td>
-                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${lowStock ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{item.quantity || 0}</span></td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{formatCurrency(item.cost || 0)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">{formatCurrency(itemValue)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>{getConditionLabel(item.item_condition || '')}</span></td>
-                    <td className="px-3 py-2 whitespace-nowrap text-right"><div className="flex justify-end gap-2">
-                      <button onClick={() => openModal(item)} className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Modifier"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-                      <button onClick={() => handleDelete(item.id, item.name)} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition" title="Supprimer"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                    </div></td></tr>;
-                })}
-              </tbody></table></div>}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Article</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Catégorie</th>
+                    <th className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Équipe</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Qté</th>
+                    <th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Coût</th>
+                    <th className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Valeur</th>
+                    <th className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Condition</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                  {inventory.map(item => {
+                    const lowStock = (item.quantity || 0) <= 2; 
+                    const color = INVENTORY_CATEGORY_COLORS[item.category as InventoryCategory] || '#6366f1';
+                    const itemValue = (item.cost || 0) * (item.quantity || 0);
+                    return <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{item.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
+                          {item.serial_number && `N°: ${item.serial_number}`}
+                          {item.supplier && (item.serial_number ? ` | ${item.supplier}` : item.supplier)}
+                          {item.purchase_year && !item.serial_number && !item.supplier && item.purchase_year}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${color}20`, color}}>
+                          {INVENTORY_CATEGORY_LABELS[item.category as InventoryCategory] || item.category}
+                        </span>
+                      </td>
+                      <td className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                        {item.team_owner || '-'}
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          lowStock ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 
+                          'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        }`}>
+                          {item.quantity || 0}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                        {formatCurrency(item.cost || 0)}
+                      </td>
+                      <td className="hidden md:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
+                        {formatCurrency(itemValue)}
+                      </td>
+                      <td className="hidden lg:table-cell px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionColor(item.item_condition || '')}`}>
+                          {getConditionLabel(item.item_condition || '')}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => openModal(item)} className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Modifier">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          </button>
+                          <button onClick={() => handleDelete(item.id, item.name)} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition" title="Supprimer">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>}
         </div>
 
         {showModal && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">

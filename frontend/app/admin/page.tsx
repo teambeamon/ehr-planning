@@ -776,10 +776,10 @@ export default function AdminPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Match</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Salle</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Journée</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Match</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">Salle</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">Journée</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -789,16 +789,16 @@ export default function AdminPage() {
                     .slice(0, 10)
                     .map((match) => (
                       <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {formatDate(match.date_iso)}
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm">
                           <span className="font-medium">{match.team_name}</span> vs <span className="font-medium">{match.opponent}</span>
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 hidden lg:table-cell">
                           {match.salle}
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 hidden lg:table-cell">
                           {match.journee}
                         </td>
                       </tr>
