@@ -101,7 +101,7 @@ export default function TeamManagementPage() {
     localStorage.removeItem('ehr_user');
     setUser(null);
     setToken('');
-    router.push('/admin');
+    router.push('/login');
   };
 
   const fetchTeams = async () => {
@@ -366,7 +366,7 @@ export default function TeamManagementPage() {
 
   // Si l'auth a échoué, on a déjà été redirigé par checkAuth
   if (!user) {
-    router.push('/admin');
+    router.push('/login?redirect=/team-management');
     return null;
   }
 

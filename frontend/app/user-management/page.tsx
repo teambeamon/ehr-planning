@@ -87,7 +87,7 @@ export default function UserManagementPage() {
     localStorage.removeItem('ehr_user');
     setUser(null);
     setToken('');
-    router.push('/admin');
+    router.push('/login');
   };
 
   const fetchUsers = async () => {
@@ -246,7 +246,7 @@ export default function UserManagementPage() {
 
   // Si l'auth a échoué, on a déjà été redirigé par checkAuth
   if (!user) {
-    router.push('/admin');
+    router.push('/login?redirect=/user-management');
     return null;
   }
 

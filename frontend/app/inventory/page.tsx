@@ -83,7 +83,7 @@ export default function InventoryPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('ehr_token'); localStorage.removeItem('ehr_user');
-    setUser(null); setToken(''); router.push('/admin');
+    setUser(null); setToken(''); router.push('/login');
   };
 
   const fetchInventory = async () => {
@@ -216,7 +216,7 @@ export default function InventoryPage() {
   const itemsWithWarranty = inventory.filter(i => i.warranty_until).length;
 
   if (!authChecked) return <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"><div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div></div>;
-  if (!user) { router.push('/admin'); return null; }
+  if (!user) { router.push('/login?redirect=/inventory'); return null; }
 
   const categoryTotals = () => {
     const totals: Record<string, { count: number; quantity: number; value: number }> = {};
