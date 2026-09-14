@@ -147,7 +147,7 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <Link href="/admin" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
+              <Link href="/login" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
                 Connexion
               </Link>
             )}
