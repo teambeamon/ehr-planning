@@ -16,10 +16,31 @@ export default function Navbar() {
     setIsMounted(true);
     // Vérifier si l'utilisateur est connecté
     const token = localStorage.getItem('ehr_token');
-    if (token) {
-      getMe(token).then((res) => {
-        if (res.data) setUser(res.data);
-      });
+    const storedUser = localStorage.getItem('ehr_user');
+    
+    if (token && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Vérifier via API si possible
+        getMe(token).then((res) => {
+          if (res.data) {
+            setUser(res.data);
+          } else {
+            // Fallback sur les données locales
+            setUser(parsedUser);
+          }
+        }).catch(() => {
+          // Si l'API échoue, utiliser les données locales
+          setUser(parsedUser);
+        });
+      } catch (e) {
+        // Erreur de parsing, essayer l'API
+        if (token) {
+          getMe(token).then((res) => {
+            if (res.data) setUser(res.data);
+          });
+        }
+      }
     }
   }, []);
 

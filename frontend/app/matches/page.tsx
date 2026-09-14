@@ -111,7 +111,12 @@ export default function MatchesPage() {
   const filteredMatches = matches.filter((match) => {
     if (filters.saison && match.saison !== filters.saison) return false;
     if (filters.salle && match.salle !== filters.salle) return false;
-    if (filters.team && !match.team_name.includes(filters.team) && !match.opponent.includes(filters.team)) return false;
+    if (filters.team) {
+      const filterLower = filters.team.toLowerCase().trim();
+      const teamNameLower = (match.team_name || '').toLowerCase();
+      const opponentLower = (match.opponent || '').toLowerCase();
+      if (!teamNameLower.includes(filterLower) && !opponentLower.includes(filterLower)) return false;
+    }
     if (filters.journee && match.journee !== filters.journee) return false;
     return true;
   });

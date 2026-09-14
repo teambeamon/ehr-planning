@@ -229,29 +229,29 @@ export default function Calendar({ saison, onDateSelect, onEventClick }: Calenda
         />
       </div>
       
-      {/* Legende avec les codes couleurs */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Legende :</h4>
-        <div className="flex flex-wrap gap-4 text-sm">
+      {/* Légende avec les codes couleurs et icônes */}
+      <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Légende :</h4>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
           <div className="flex items-center">
-            <span className="w-4 h-4 rounded mr-2 bg-green-500 border border-green-500"></span>
+            <span className="w-4 h-4 rounded-full mr-2 bg-green-500 border-2 border-green-600"></span>
             <span className="text-gray-700 dark:text-gray-300">🏠 Domicile (EHR en 1er, salle EHR)</span>
           </div>
           <div className="flex items-center">
-            <span className="w-4 h-4 rounded mr-2 bg-blue-500 border border-blue-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">🏟️ Domicile (EHR en 1er, autre salle)</span>
+            <span className="w-4 h-4 rounded-full mr-2 bg-blue-500 border-2 border-blue-600"></span>
+            <span className="text-gray-700 dark:text-gray-300">🏟️ Domicile (autre salle)</span>
           </div>
           <div className="flex items-center">
-            <span className="w-4 h-4 rounded mr-2 bg-orange-500 border border-orange-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">❓ Domicile (EHR en 1er, salle non prevue)</span>
+            <span className="w-4 h-4 rounded-full mr-2 bg-orange-500 border-2 border-orange-600"></span>
+            <span className="text-gray-700 dark:text-gray-300">❓ Domicile (salle non définie)</span>
           </div>
           <div className="flex items-center">
-            <span className="w-4 h-4 rounded mr-2 bg-red-500 border border-red-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">🚀 Exterior (EHR en 2nd)</span>
+            <span className="w-4 h-4 rounded-full mr-2 bg-red-500 border-2 border-red-600"></span>
+            <span className="text-gray-700 dark:text-gray-300">🚀 Extérieur (EHR en 2nd)</span>
           </div>
           <div className="flex items-center">
-            <span className="w-4 h-4 rounded mr-2 bg-purple-500 border border-purple-500"></span>
-            <span className="text-gray-700 dark:text-gray-300">⚽ Neutre</span>
+            <span className="w-4 h-4 rounded-full mr-2 bg-purple-500 border-2 border-purple-600"></span>
+            <span className="text-gray-700 dark:text-gray-300">⚽ Neutre/Indéterminé</span>
           </div>
         </div>
       </div>
