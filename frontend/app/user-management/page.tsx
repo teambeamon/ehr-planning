@@ -79,6 +79,7 @@ export default function UserManagementPage() {
       }
     }
     // Si on arrive ici, c'est qu'il n'y a pas de session valide
+    setAuthChecked(true);
     handleLogout();
   };
 

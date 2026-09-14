@@ -48,7 +48,7 @@ export default function TeamManagementPage() {
   const [parentForm, setParentForm] = useState<Partial<Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>>>({
     team_name: '',
     parent_name: '',
-    role: 'responsable_stable_de_marque',
+    role: 'responsable_stable_de_marque' as ParentRole,
     phone: '',
     email: '',
   });
@@ -93,6 +93,7 @@ export default function TeamManagementPage() {
       }
     }
     // Si on arrive ici, c'est qu'il n'y a pas de session valide
+    setAuthChecked(true);
     handleLogout();
   };
 
@@ -191,7 +192,7 @@ export default function TeamManagementPage() {
     try {
       if (editingParent) {
         // Mise à jour
-        const res = await updateTeamParent(editingParent.id, parentForm, token);
+        const res = await updateTeamParent(editingParent.id, parentForm as Partial<Omit<TeamParent, 'id' | 'created_at' | 'updated_at'>>, token);
         if (res.error) {
           setError(res.error);
         } else {
@@ -313,7 +314,7 @@ export default function TeamManagementPage() {
       setParentForm({
         team_name: '',
         parent_name: '',
-        role: 'responsable_stable_de_marque',
+        role: 'responsable_stable_de_marque' as ParentRole,
         phone: '',
         email: '',
       });
@@ -327,7 +328,7 @@ export default function TeamManagementPage() {
     setParentForm({
       team_name: '',
       parent_name: '',
-      role: 'responsable_stable_de_marque',
+      role: 'responsable_stable_de_marque' as ParentRole,
       phone: '',
       email: '',
     });

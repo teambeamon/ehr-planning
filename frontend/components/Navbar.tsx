@@ -200,7 +200,7 @@ export default function Navbar() {
             >
               Classements
             </Link>
-            {user && (
+            {user ? (
               <>
                 <Link
                   href="/inventory"
@@ -233,6 +233,14 @@ export default function Navbar() {
                   </Link>
                 )}
               </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-base font-medium"
+              >
+                Connexion
+              </Link>
             )}
           </div>
         </div>

@@ -239,6 +239,7 @@ export default function AdminPage() {
     setToken('');
     setUsername('');
     setPassword('');
+    router.push('/login');
   };
 
   const handleSetSaison = async () => {
@@ -426,78 +427,8 @@ export default function AdminPage() {
   };
 
   if (!user) {
-    // Page de connexion
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-        <Navbar />
-        <main className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-ehr-blue dark:bg-ehr-dark rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-2xl">EHR</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Connexion Admin
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">
-                Identifiez-vous pour accéder au panneau d\'administration
-              </p>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Identifiant
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Mot de passe
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                    Connexion...
-                  </>
-                ) : (
-                  'Se connecter'
-                )}
-              </button>
-            </form>
-          </div>
-        </main>
-      </div>
-    );
+    router.push('/login?redirect=/admin');
+    return null;
   }
 
   // Panneau admin (connecté)

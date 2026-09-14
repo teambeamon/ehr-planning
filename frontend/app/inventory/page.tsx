@@ -73,6 +73,7 @@ export default function InventoryPage() {
         }
       } catch (error) {}
     }
+    setAuthChecked(true);
     handleLogout();
   };
 
