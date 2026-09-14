@@ -239,10 +239,10 @@ export default function InventoryPage() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Inventaire Matériel</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">Gestion complète du matériel du club</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => setShowReport('summary')} className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition flex items-center">Rapports <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
-            <button onClick={() => openModal()} className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition flex items-center">Ajouter <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
-            <button onClick={handleLogout} className="px-3 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30 text-red-700 dark:text-red-400 rounded-lg transition text-sm font-medium">Déconnexion</button>
+          <div className="flex gap-1.5 flex-wrap">
+            <button onClick={() => setShowReport('summary')} className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition flex items-center">Rapports <svg className="w-3.5 h-3.5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
+            <button onClick={() => openModal()} className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition flex items-center">Ajouter <svg className="w-3.5 h-3.5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
+            <button onClick={handleLogout} className="px-2.5 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/30 text-red-700 dark:text-red-400 rounded-lg transition text-xs font-medium">Déconnexion</button>
           </div>
         </div>
 
@@ -337,75 +337,75 @@ export default function InventoryPage() {
 
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Filtres</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="tout">Toutes</option>{categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
-              <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
+              <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="tout">Toutes</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
-              <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
+              <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="tout">Toutes</option>{years.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
-              <select value={selectedCondition} onChange={(e) => setSelectedCondition(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
+              <select value={selectedCondition} onChange={(e) => setSelectedCondition(e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {conditions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
-              <select value={supplierFilter} onChange={(e) => setSupplierFilter(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
+              <select value={supplierFilter} onChange={(e) => setSupplierFilter(e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Tous</option>{suppliers.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rechercher</label>
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Nom, N° série..." className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Rechercher</label>
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Nom, N° série..." className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
             </div>
           </div>
-          <div className="mt-3"><button onClick={() => { setSelectedCategory('tout'); setSelectedTeam('tout'); setSelectedYear('tout'); setSelectedCondition('tout'); setSearchQuery(''); setSupplierFilter(''); }} className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition text-sm">Effacer filtres</button></div>
+          <div className="mt-2"><button onClick={() => { setSelectedCategory('tout'); setSelectedTeam('tout'); setSelectedYear('tout'); setSelectedCondition('tout'); setSearchQuery(''); setSupplierFilter(''); }} className="px-2 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition text-xs">Effacer filtres</button></div>
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Par catégorie</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             {categories.map(c => {
               const label = INVENTORY_CATEGORY_LABELS[c] || c;
               const color = INVENTORY_CATEGORY_COLORS[c] || '#6366f1';
               const t = catTotals[c];
-              return <div key={c} onClick={() => setSelectedCategory(c)} className={`p-3 rounded-lg transition cursor-pointer text-center ${selectedCategory === c ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`} style={{backgroundColor: `${color}20`}}>
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs md:text-sm truncate">{label}</div>
-                <div className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{t?.quantity || 0}</div>
+              return <div key={c} onClick={() => setSelectedCategory(c)} className={`p-2 rounded-lg transition cursor-pointer text-center ${selectedCategory === c ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`} style={{backgroundColor: `${color}20`}}>
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs truncate">{label}</div>
+                <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mt-0.5">{t?.quantity || 0}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{t?.count || 0} art.</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{formatCurrency(t?.value || 0)}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{formatCurrency(t?.value || 0)}</div>
               </div>;
             })}
-            <div onClick={() => setSelectedCategory('tout')} className={`p-3 rounded-lg transition cursor-pointer flex items-center justify-center ${selectedCategory === 'tout' ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+            <div onClick={() => setSelectedCategory('tout')} className={`p-2 rounded-lg transition cursor-pointer flex items-center justify-center ${selectedCategory === 'tout' ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
               <div className="text-center">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs md:text-sm">Total</div>
-                <div className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mt-1">{totalQuantity}</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">Total</div>
+                <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mt-0.5">{totalQuantity}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{totalItems} art.</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{formatCurrency(totalValue)}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{formatCurrency(totalValue)}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 md:p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-3 md:p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-2">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Liste ({inventory.length} articles)</h2>
-            <button onClick={() => fetchInventory()} className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"/></svg>
+            <button onClick={() => fetchInventory()} className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center">
+              <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"/></svg>
               Rafraîchir
             </button>
           </div>
@@ -483,106 +483,106 @@ export default function InventoryPage() {
         </div>
 
         {showModal && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-lg p-4 md:p-6 overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">{editingItem ? 'Modifier' : 'Ajouter'} Article</h2>
-              <button onClick={closeModal} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-3 md:p-6 overflow-y-auto max-h-[90vh]">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{editingItem ? 'Modifier' : 'Ajouter'} Article</h2>
+              <button onClick={closeModal} className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3 text-sm">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ballon taille 3" required/>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ballon taille 3" required/>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie *</label>
-                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value as InventoryCategory})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie *</label>
+                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value as InventoryCategory})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     {categories.map(c => <option key={c} value={c}>{INVENTORY_CATEGORY_LABELS[c] || c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
-                  <select value={formData.team_owner} onChange={(e) => setFormData({...formData, team_owner: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Équipe</label>
+                  <select value={formData.team_owner} onChange={(e) => setFormData({...formData, team_owner: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Non assigné</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition *</label>
-                  <select value={formData.item_condition} onChange={(e) => setFormData({...formData, item_condition: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Condition *</label>
+                  <select value={formData.item_condition} onChange={(e) => setFormData({...formData, item_condition: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     {conditions.filter(c => c.value !== 'tout').map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantité *</label>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleQuantityChange(-1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50" disabled={(formData.quantity || 0) <= 0}>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Quantité *</label>
+                  <div className="flex items-center gap-1">
+                    <button type="button" onClick={() => handleQuantityChange(-1)} className="p-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50" disabled={(formData.quantity || 0) <= 0}>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <input type="number" value={formData.quantity || 0} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} min="0" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required/>
-                    <button type="button" onClick={() => handleQuantityChange(1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/></svg>
+                    <input type="number" value={formData.quantity || 0} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} min="0" className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required/>
+                    <button type="button" onClick={() => handleQuantityChange(1)} className="p-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/></svg>
                     </button>
                   </div>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emplacement</label>
-                  <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Salle Hettange"/>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Emplacement</label>
+                  <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Salle Hettange"/>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable</label>
-                  <input type="text" value={formData.responsible} onChange={(e) => setFormData({...formData, responsible: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jean Dupont"/>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable</label>
+                  <input type="text" value={formData.responsible} onChange={(e) => setFormData({...formData, responsible: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jean Dupont"/>
                 </div>
               </div>
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Détails d'achat</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Détails d'achat</h3>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Coût (€)</label>
-                    <input type="number" value={formData.cost || 0} onChange={(e) => setFormData({...formData, cost: parseFloat(e.target.value) || 0})} step="0.01" min="0" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00"/>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Coût (€)</label>
+                    <input type="number" value={formData.cost || 0} onChange={(e) => setFormData({...formData, cost: parseFloat(e.target.value) || 0})} step="0.01" min="0" className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00"/>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
-                    <input type="text" value={formData.supplier} onChange={(e) => setFormData({...formData, supplier: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Decathlon"/>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
-                    <input type="number" value={formData.purchase_year || ''} onChange={(e) => setFormData({...formData, purchase_year: parseInt(e.target.value) || undefined})} min="1900" max="2100" className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="2024"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date achat</label>
-                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">N° série</label>
-                    <input type="text" value={formData.serial_number} onChange={(e) => setFormData({...formData, serial_number: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="SN12345"/>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
+                    <input type="text" value={formData.supplier} onChange={(e) => setFormData({...formData, supplier: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Decathlon"/>
                   </div>
                 </div>
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garantie jusqu'au</label>
-                  <input type="date" value={formData.warranty_until} onChange={(e) => setFormData({...formData, warranty_until: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
+                    <input type="number" value={formData.purchase_year || ''} onChange={(e) => setFormData({...formData, purchase_year: parseInt(e.target.value) || undefined})} min="1900" max="2100" className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="2024"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Date achat</label>
+                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">N° série</label>
+                    <input type="text" value={formData.serial_number} onChange={(e) => setFormData({...formData, serial_number: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="SN12345"/>
+                  </div>
                 </div>
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
-                  <input type="text" value={formData.assigned_to} onChange={(e) => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Équipe Senior"/>
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Garantie jusqu'au</label>
+                  <input type="date" value={formData.warranty_until} onChange={(e) => setFormData({...formData, warranty_until: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
+                  <input type="text" value={formData.assigned_to} onChange={(e) => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Équipe Senior"/>
                 </div>
               </div>
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Notes</h3>
-                <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="À remplacer, stock limité..."/>
+              <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Notes</h3>
+                <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="À remplacer, stock limité..."/>
               </div>
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition text-sm">Annuler</button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center text-sm">
-                  {loading ? <><div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>En cours...</> : 'Enregistrer'}
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <button type="button" onClick={closeModal} className="px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition text-sm">Annuler</button>
+                <button type="submit" disabled={loading} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center text-sm">
+                  {loading ? <><div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1.5"></div>En cours...</> : 'Enregistrer'}
                 </button>
               </div>
             </form>
