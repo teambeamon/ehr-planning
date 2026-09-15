@@ -454,7 +454,6 @@ export default function AdminPage() {
     router.push('/login?redirect=/admin');
     return null;
   }
-
   // Panneau admin (connecté)
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
