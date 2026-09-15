@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "cacheBust": "2026-09-15T22:45:00Z",
   "builds": [
     {
       "src": "api/handler.py",
