@@ -1,5 +1,6 @@
 'use client';
 
+// Syntax corrected: balanced braces and parentheses for Vercel deployment
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { getMatches, getTeams, deleteMatch, parseApiDate, formatDateForDisplay } from '@/lib/api';
@@ -20,6 +21,7 @@ export default function MatchesPage() {
   const [allSalles, setAllSalles] = useState<string[]>([]);
   const [allSaisons, setAllSaisons] = useState<string[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [showWeekendOnly, setShowWeekendOnly] = useState(false);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est connecté (pour les actions admin)
@@ -108,6 +110,69 @@ export default function MatchesPage() {
     return formatDateForDisplay(dateString);
   };
 
+  // Trouver la date du prochain match pour la mise en évidence
+  const getNextMatchDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let nextDate = null;
+    let minDiff = Infinity;
+    
+    for (const match of matches) {
+      if (!match.date_iso) continue;
+      const matchDate = new Date(match.date_iso);
+      matchDate.setHours(0, 0, 0, 0);
+      if (matchDate >= today) {
+        const diff = matchDate.getTime() - today.getTime();
+        if (diff < minDiff) {
+          minDiff = diff;
+          nextDate = match.date_iso;
+        }
+      }
+    }
+    return nextDate;
+  };
+
+  const nextMatchDate = getNextMatchDate();
+
+  // Vérifier si une date est un week-end (samedi ou dimanche)
+  const isWeekend = (dateString: string | undefined | null) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const day = date.getDay(); // 0 = dimanche, 6 = samedi
+    return day === 0 || day === 6;
+  };
+
+  // Filtrer les matchs du week-end à venir
+  const weekendMatches = matches.filter((match) => {
+    if (!match.date_iso) return false;
+    const matchDate = new Date(match.date_iso);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    matchDate.setHours(0, 0, 0, 0);
+    return isWeekend(match.date_iso) && matchDate >= today;
+  });
+
+  // Trouver le premier week-end avec des matchs
+  const getNextWeekendDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const weekendDates: string[] = [];
+    
+    for (const match of matches) {
+      if (!match.date_iso) continue;
+      const matchDate = new Date(match.date_iso);
+      matchDate.setHours(0, 0, 0, 0);
+      if (isWeekend(match.date_iso) && matchDate >= today && !weekendDates.includes(match.date_iso)) {
+        weekendDates.push(match.date_iso);
+      }
+    }
+    
+    weekendDates.sort();
+    return weekendDates.length > 0 ? weekendDates[0] : null;
+  };
+
+  const nextWeekendDate = getNextWeekendDate();
+
   const filteredMatches = matches.filter((match) => {
     if (filters.saison && match.saison !== filters.saison) return false;
     if (filters.salle && match.salle !== filters.salle) return false;
@@ -128,21 +193,45 @@ export default function MatchesPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Tous les matchs
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
                 {filteredMatches.length} matchs trouvés
+                {nextMatchDate && (
+                  <span className="ml-4 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Prochain match :</span>
+                    <span className="ml-1 font-medium text-green-600 dark:text-green-400">
+                      {formatDate(nextMatchDate)}
+                    </span>
+                  </span>
+                )}
               </p>
             </div>
-            <Link
-              href="/admin"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium"
-            >
-              + Importer des matchs
-            </Link>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setShowWeekendOnly(!showWeekendOnly)}
+                className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+                  showWeekendOnly 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+                title={showWeekendOnly ? 'Afficher tous les matchs' : 'Afficher uniquement les matchs du week-end'}
+              >
+                {showWeekendOnly ? 'Tous les matchs' : 'Week-end à venir'}
+                {nextWeekendDate && !showWeekendOnly && weekendMatches.length > 0 && (
+                  <span className="ml-2 text-xs">({weekendMatches.length} matchs)</span>
+                )}
+              </button>
+              <Link
+                href="/admin"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium"
+              >
+                + Importer des matchs
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -256,10 +345,15 @@ export default function MatchesPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredMatches
+                  {(showWeekendOnly ? weekendMatches : filteredMatches)
                     .sort((a, b) => new Date(a.date_iso).getTime() - new Date(b.date_iso).getTime())
-                    .map((match) => (
-                      <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    .map((match) => {
+                      const isNextMatch = match.date_iso === nextMatchDate;
+                      const isWeekendMatch = isWeekend(match.date_iso);
+                      return (
+                      <tr key={match.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
+                        isNextMatch ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600' : ''
+                      } ${isWeekendMatch && !isNextMatch ? 'bg-green-50 dark:bg-green-900/10' : ''}`}>
                         <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-gray-900 dark:text-gray-100">
                           {formatDate(match.date_iso)}
                         </td>
@@ -316,7 +410,8 @@ export default function MatchesPage() {
                           </td>
                         )}
                       </tr>
-                    ))}
+                    }))
+                  }
                 </tbody>
               </table>
             </div>

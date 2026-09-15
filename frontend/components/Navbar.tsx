@@ -85,6 +85,9 @@ export default function Navbar() {
             <Link href="/matches" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
               Matchs
             </Link>
+            <Link href="/weekend-matches" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
+              Week-end
+            </Link>
             <Link href="/salles" className="text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-sm font-medium">
               Salles
             </Link>
@@ -185,6 +188,13 @@ export default function Navbar() {
               className="block text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-base font-medium"
             >
               Matchs
+            </Link>
+            <Link
+              href="/weekend-matches"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-white dark:text-gray-300 hover:text-ehr-light dark:hover:text-gray-100 transition px-3 py-2 rounded-md text-base font-medium"
+            >
+              Week-end
             </Link>
             <Link
               href="/salles"
