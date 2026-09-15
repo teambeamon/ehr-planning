@@ -717,7 +717,7 @@ export default function AdminPage() {
                       <p><strong>Total matchs :</strong> {validMatches.length}</p>
                     </div>
                   );
-                })()}}
+                })()}
               </div>
             </div>
           )}
