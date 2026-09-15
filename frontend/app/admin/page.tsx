@@ -426,30 +426,6 @@ export default function AdminPage() {
     return formatDateForDisplay(dateString);
   };
 
-  // Trouver la date du prochain match pour la mise en évidence
-  const getNextMatchDate = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let nextDate = null;
-    let minDiff = Infinity;
-    
-    for (const match of matches) {
-      if (!match.date_iso) continue;
-      const matchDate = new Date(match.date_iso);
-      matchDate.setHours(0, 0, 0, 0);
-      if (matchDate >= today) {
-        const diff = matchDate.getTime() - today.getTime();
-        if (diff < minDiff) {
-          minDiff = diff;
-          nextDate = match.date_iso;
-        }
-      }
-    }
-    return nextDate;
-  };
-
-  const nextMatchDate = getNextMatchDate();
-
   if (!user) {
     router.push('/login?redirect=/admin');
     return null;
