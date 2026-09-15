@@ -143,7 +143,7 @@ export default function MatchesPage() {
     }
     if (filters.journee && match.journee !== filters.journee) return false;
     return true;
-  }); 
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -285,8 +285,7 @@ export default function MatchesPage() {
                     .map((match) => {
                       const isNextMatch = match.date_iso === nextMatchDate;
                       return (
-                        <tr key={match.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 ${isNextMatch ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600' : ''}`}>
-
+                      <tr key={match.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 ${isNextMatch ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600' : ''}`}>
                         <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-gray-900 dark:text-gray-100">
                           {formatDate(match.date_iso)}
                         </td>
@@ -343,7 +342,7 @@ export default function MatchesPage() {
                           </td>
                         )}
                       </tr>
-                    )});
+                    })}
                 </tbody>
               </table>
             </div>
