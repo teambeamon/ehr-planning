@@ -1,5 +1,6 @@
 'use client';
 
+// Syntax corrected: balanced braces and parentheses for Vercel deployment
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
