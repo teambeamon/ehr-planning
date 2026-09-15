@@ -342,7 +342,8 @@ export default function MatchesPage() {
                           </td>
                         )}
                       </tr>
-                    })}
+                    ));}
+                    }
                 </tbody>
               </table>
             </div>

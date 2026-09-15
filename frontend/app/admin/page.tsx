@@ -759,7 +759,8 @@ export default function AdminPage() {
                           {match.journee}
                         </td>
                       </tr>
-                    })}
+                    }));
+                    }
                 </tbody>
               </table>
             </div>
