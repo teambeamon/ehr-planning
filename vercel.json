@@ -9,7 +9,10 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/next",
-      "config": { "installCommand": "npm install" }
+      "config": { 
+        "installCommand": "npm install",
+        "zeroConfig": false
+      }
     }
   ],
   "routes": [
