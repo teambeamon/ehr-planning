@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "nodeVersion": "20",
   "builds": [
     {
       "src": "api/handler.py",
@@ -10,7 +11,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/next",
       "config": { 
-        "installCommand": "npm ci",
+        "installCommand": "npm install",
         "zeroConfig": false,
         "buildCommand": "npm run build"
       }
