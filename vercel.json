@@ -23,23 +23,27 @@
     },
     {
       "src": "^/admin\\.html$",
-      "dest": "public/admin.html"
+      "dest": "frontend/public/admin.html"
     },
     {
       "src": "^/salles\\.html$",
-      "dest": "public/salles.html"
+      "dest": "frontend/public/salles.html"
     },
     {
       "src": "^/classements\\.html$",
-      "dest": "public/classements.html"
+      "dest": "frontend/public/classements.html"
     },
     {
       "src": "^/index\\.html$",
-      "dest": "public/index.html"
+      "dest": "frontend/public/index.html"
     },
     {
       "src": "/api/(.*)",
       "dest": "api/handler.py"
     },
+    {
+      "src": "/(.*)",
+      "dest": "frontend"
+    }
   ]
 }
