@@ -41,9 +41,5 @@
       "src": "/api/(.*)",
       "dest": "api/handler.py"
     },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
-    }
   ]
 }
