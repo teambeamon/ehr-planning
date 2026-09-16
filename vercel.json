@@ -1,11 +1,10 @@
 {
   "version": 2,
-  // Force redeploy - fix React imports
   "builds": [
     {
       "src": "api/handler.py",
       "use": "@vercel/python",
-      "config": { "maxDuration": 60 }
+      "config": { "maxDuration": 61 }
     },
     {
       "src": "frontend/package.json",
