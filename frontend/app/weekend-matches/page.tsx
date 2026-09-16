@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { getMatches, formatDateForDisplay } from '@/lib/api';
