@@ -1,5 +1,6 @@
 {
   "version": 2,
+  // Force redeploy - fix React imports
   "builds": [
     {
       "src": "api/handler.py",
