@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "nodeVersion": "20",
   "builds": [
     {
       "src": "api/handler.py",
